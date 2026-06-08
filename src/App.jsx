@@ -8,6 +8,9 @@ import Ventes from './pages/Ventes'
 import Creances from './pages/Creances'
 import Clients from './pages/Clients'
 import Pilotage from './pages/Pilotage'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminUserDetail from './pages/admin/AdminUserDetail'
+import AdminAudit from './pages/admin/AdminAudit'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
@@ -19,21 +22,32 @@ function PublicRoute({ children }) {
   return user ? <Navigate to="/" replace /> : children
 }
 
+function AdminRoute({ children }) {
+  const { user, isAdmin } = useAuth()
+  if (!user) return <Navigate to="/login" replace />
+  if (!isAdmin) return <Navigate to="/" replace />
+  return children
+}
+
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-      <Route
-        path="/"
-        element={<PrivateRoute><Layout /></PrivateRoute>}
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="ventes" element={<Ventes />} />
+
+      <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+        <Route index           element={<Dashboard />} />
+        <Route path="ventes"   element={<Ventes />} />
         <Route path="creances" element={<Creances />} />
-        <Route path="clients" element={<Clients />} />
+        <Route path="clients"  element={<Clients />} />
         <Route path="pilotage" element={<Pilotage />} />
+
+        {/* Admin */}
+        <Route path="admin"              element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="admin/users/:id"    element={<AdminRoute><AdminUserDetail /></AdminRoute>} />
+        <Route path="admin/audit"        element={<AdminRoute><AdminAudit /></AdminRoute>} />
       </Route>
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

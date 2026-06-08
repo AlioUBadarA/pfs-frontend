@@ -7,9 +7,9 @@ const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '0 F'
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—'
 
 export default function Creances() {
-  const [data, setData] = useState({ creances: [], kpis: {} })
+  const [data, setData]       = useState({ creances: [], kpis: {} })
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [error, setError]     = useState('')
   const [updating, setUpdating] = useState(null)
 
   const load = useCallback(() => {
@@ -17,13 +17,13 @@ export default function Creances() {
     Promise.all([
       api.get('/api/ventes', { params: { statut: 'En cours' } }),
       api.get('/api/ventes', { params: { statut: 'En retard' } }),
-      api.get('/api/ventes', { params: { statut: 'Payé' } }),
+      api.get('/api/ventes', { params: { statut: 'Paye' } }),
     ])
       .then(([enCours, enRetard, paye]) => {
-        const parseList = (r) => r.data?.ventes || r.data || []
-        const listEnCours = parseList(enCours)
+        const parseList = (r) => Array.isArray(r.data) ? r.data : []
+        const listEnCours  = parseList(enCours)
         const listEnRetard = parseList(enRetard)
-        const listPaye = parseList(paye)
+        const listPaye     = parseList(paye)
 
         const somme = (arr) => arr.reduce((s, v) => s + Number(v.montant || 0), 0)
 
@@ -35,10 +35,10 @@ export default function Creances() {
           creances: [...listEnRetard, ...listEnCours],
           kpis: {
             en_retard: somme(listEnRetard),
-            en_cours: somme(listEnCours),
+            en_cours:  somme(listEnCours),
             paye_mois: somme(payeMois),
             nb_retard: listEnRetard.length,
-            nb_cours: listEnCours.length,
+            nb_cours:  listEnCours.length,
           },
         })
       })
@@ -51,7 +51,7 @@ export default function Creances() {
   const marquerPaye = async (id) => {
     setUpdating(id)
     try {
-      await api.patch(`/api/ventes/${id}/statut`, { statut: 'Payé' })
+      await api.patch(`/api/ventes/${id}/statut`, { statut_paiement: 'Paye' })
       load()
     } catch {
       setError('Erreur lors de la mise à jour')
@@ -67,36 +67,17 @@ export default function Creances() {
       <h2 className="text-xl font-bold text-gray-900">Créances</h2>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-          {error}
-        </div>
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>
       )}
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <KpiCard
-          title="En retard"
-          value={fmt(kpis.en_retard)}
-          sub={`${kpis.nb_retard ?? 0} vente(s)`}
-          color="#CC0000"
-          icon="🔴"
-        />
-        <KpiCard
-          title="En cours"
-          value={fmt(kpis.en_cours)}
-          sub={`${kpis.nb_cours ?? 0} vente(s)`}
-          color="#F9A825"
-          icon="🟡"
-        />
-        <KpiCard
-          title="Payé ce mois"
-          value={fmt(kpis.paye_mois)}
-          color="#1B5E20"
-          icon="✅"
-        />
+        <KpiCard title="En retard"   value={fmt(kpis.en_retard)} sub={`${kpis.nb_retard ?? 0} vente(s)`} color="#CC0000"  icon="🔴" />
+        <KpiCard title="En cours"    value={fmt(kpis.en_cours)}  sub={`${kpis.nb_cours ?? 0} vente(s)`}  color="#F9A825"  icon="🟡" />
+        <KpiCard title="Payé ce mois" value={fmt(kpis.paye_mois)}                                        color="#1B5E20"  icon="✅" />
       </div>
 
-      {/* Tableau créances */}
+      {/* Tableau */}
       <div className="card p-0 overflow-x-auto">
         {loading ? (
           <div className="flex justify-center py-10">
@@ -108,7 +89,7 @@ export default function Creances() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr>
-                {['Date', 'Client', 'Produit', 'Montant', 'Statut', 'Action'].map((h) => (
+                {['Date','Client','Produit','Montant','Statut','Action'].map(h => (
                   <th key={h} className="table-header">{h}</th>
                 ))}
               </tr>
@@ -123,7 +104,7 @@ export default function Creances() {
                     {Number(v.montant).toLocaleString('fr-FR')} F
                   </td>
                   <td className="table-cell">
-                    <StatutBadge statut={v.statut} />
+                    <StatutBadge statut={v.statut_paiement} />
                   </td>
                   <td className="table-cell">
                     <button

@@ -3,32 +3,39 @@ import api from '../services/api'
 import Modal from '../components/Modal'
 import StatutBadge from '../components/StatutBadge'
 
-const STATUTS = ['En cours', 'Payé', 'En retard']
-
-const VENTE_INIT = {
-  client_nom: '', produit: '', quantite: '', montant: '', statut: 'En cours', date_vente: '',
-}
+// Valeurs exactes du backend
+const STATUTS_DB   = ['En cours', 'Paye', 'En retard']
+const STATUT_LABEL = { 'Paye': 'Payé', 'En cours': 'En cours', 'En retard': 'En retard' }
 
 const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '—'
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—'
 
+const VENTE_INIT = {
+  client_nom: '', produit: '', quantite: '', prix_unitaire: '',
+  statut_paiement: 'En cours', date_vente: '',
+}
+
 export default function Ventes() {
-  const [ventes, setVentes] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [filterMois, setFilterMois] = useState('')
+  const [ventes, setVentes]     = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [filterMois, setFilterMois]     = useState('')
   const [filterStatut, setFilterStatut] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
-  const [form, setForm] = useState(VENTE_INIT)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
+  const [form, setForm]           = useState(VENTE_INIT)
+  const [saving, setSaving]       = useState(false)
+  const [error, setError]         = useState('')
 
   const load = useCallback(() => {
     setLoading(true)
     const params = {}
-    if (filterMois) params.mois = filterMois
+    if (filterMois) {
+      const [year, month] = filterMois.split('-')
+      params.mois  = month
+      params.annee = year
+    }
     if (filterStatut) params.statut = filterStatut
     api.get('/api/ventes', { params })
-      .then((r) => setVentes(r.data?.ventes || r.data || []))
+      .then((r) => setVentes(Array.isArray(r.data) ? r.data : []))
       .catch(() => setError('Erreur de chargement'))
       .finally(() => setLoading(false))
   }, [filterMois, filterStatut])
@@ -43,25 +50,29 @@ export default function Ventes() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSaving(true)
+    setError('')
     try {
       await api.post('/api/ventes', {
-        ...form,
-        quantite: Number(form.quantite),
-        montant: Number(form.montant),
+        client_nom:      form.client_nom,
+        produit:         form.produit,
+        date_vente:      form.date_vente,
+        quantite:        Number(form.quantite),
+        prix_unitaire:   Number(form.prix_unitaire),
+        statut_paiement: form.statut_paiement,
       })
       setModalOpen(false)
       load()
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de la création')
+      setError(err.response?.data?.error || 'Erreur lors de la création')
     } finally {
       setSaving(false)
     }
   }
 
-  const changeStatut = async (id, statut) => {
+  const changeStatut = async (id, statut_paiement) => {
     try {
-      await api.patch(`/api/ventes/${id}/statut`, { statut })
-      setVentes((prev) => prev.map((v) => (v.id === id ? { ...v, statut } : v)))
+      await api.patch(`/api/ventes/${id}/statut`, { statut_paiement })
+      setVentes((prev) => prev.map((v) => v.id === id ? { ...v, statut_paiement } : v))
     } catch {
       setError('Erreur mise à jour statut')
     }
@@ -79,44 +90,39 @@ export default function Ventes() {
 
   const set = (f) => (e) => setForm({ ...form, [f]: e.target.value })
 
+  // Montant calculé en temps réel dans le formulaire
+  const montantCalc = form.quantite && form.prix_unitaire
+    ? (Number(form.quantite) * Number(form.prix_unitaire)).toLocaleString('fr-FR') + ' F'
+    : '—'
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h2 className="text-xl font-bold text-gray-900">Ventes</h2>
-        <button onClick={openNew} className="btn-primary text-sm">
-          + Nouvelle vente
-        </button>
+        <button onClick={openNew} className="btn-primary text-sm">+ Nouvelle vente</button>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-          {error}
-        </div>
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>
       )}
 
       {/* Filtres */}
       <div className="card flex flex-wrap items-center gap-3">
         <div>
           <label className="label mb-0 inline mr-2">Mois</label>
-          <input
-            type="month"
-            className="input w-auto"
-            value={filterMois}
-            onChange={(e) => setFilterMois(e.target.value)}
-          />
+          <input type="month" className="input w-auto" value={filterMois}
+            onChange={(e) => setFilterMois(e.target.value)} />
         </div>
         <div>
           <label className="label mb-0 inline mr-2">Statut</label>
           <select className="input w-auto" value={filterStatut} onChange={(e) => setFilterStatut(e.target.value)}>
             <option value="">Tous</option>
-            {STATUTS.map((s) => <option key={s}>{s}</option>)}
+            {STATUTS_DB.map((s) => <option key={s} value={s}>{STATUT_LABEL[s]}</option>)}
           </select>
         </div>
         {(filterMois || filterStatut) && (
-          <button
-            className="text-xs text-gray-500 underline"
-            onClick={() => { setFilterMois(''); setFilterStatut('') }}
-          >
+          <button className="text-xs text-gray-500 underline"
+            onClick={() => { setFilterMois(''); setFilterStatut('') }}>
             Réinitialiser
           </button>
         )}
@@ -134,7 +140,7 @@ export default function Ventes() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr>
-                {['Date', 'Client', 'Produit', 'Qté (kg)', 'Montant', 'Statut', 'Actions'].map((h) => (
+                {['Date','Client','Produit','Qté (kg)','P.U.','Montant','Statut','Actions'].map(h => (
                   <th key={h} className="table-header whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -146,21 +152,20 @@ export default function Ventes() {
                   <td className="table-cell font-medium">{v.client_nom}</td>
                   <td className="table-cell">{v.produit}</td>
                   <td className="table-cell text-right">{Number(v.quantite).toLocaleString('fr-FR')}</td>
-                  <td className="table-cell text-right font-medium">{fmt(v.montant)}</td>
+                  <td className="table-cell text-right">{fmt(v.prix_unitaire)}</td>
+                  <td className="table-cell text-right font-semibold">{fmt(v.montant)}</td>
                   <td className="table-cell">
                     <select
-                      value={v.statut}
+                      value={v.statut_paiement}
                       onChange={(e) => changeStatut(v.id, e.target.value)}
                       className="text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none cursor-pointer"
                     >
-                      {STATUTS.map((s) => <option key={s}>{s}</option>)}
+                      {STATUTS_DB.map((s) => <option key={s} value={s}>{STATUT_LABEL[s]}</option>)}
                     </select>
                   </td>
                   <td className="table-cell">
-                    <button
-                      onClick={() => deleteVente(v.id)}
-                      className="text-xs text-red-600 hover:text-red-800 font-medium"
-                    >
+                    <button onClick={() => deleteVente(v.id)}
+                      className="text-xs text-red-600 hover:text-red-800 font-medium">
                       Supprimer
                     </button>
                   </td>
@@ -184,28 +189,29 @@ export default function Ventes() {
           </div>
           <div>
             <label className="label">Produit</label>
-            <input className="input" placeholder="Ex: Riz brisé 25%..." value={form.produit} onChange={set('produit')} required />
+            <input className="input" placeholder="Ex: Riz brisé 25%" value={form.produit} onChange={set('produit')} required />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">Quantité (kg)</label>
-              <input type="number" min="0" step="any" className="input" value={form.quantite} onChange={set('quantite')} required />
+              <input type="number" min="0.01" step="any" className="input" value={form.quantite} onChange={set('quantite')} required />
             </div>
             <div>
-              <label className="label">Montant (FCFA)</label>
-              <input type="number" min="0" className="input" value={form.montant} onChange={set('montant')} required />
+              <label className="label">Prix unitaire (F/kg)</label>
+              <input type="number" min="1" className="input" value={form.prix_unitaire} onChange={set('prix_unitaire')} required />
             </div>
+          </div>
+          <div className="bg-gray-50 rounded-lg px-3 py-2 text-sm">
+            Montant total : <strong className="text-[#1B5E20]">{montantCalc}</strong>
           </div>
           <div>
             <label className="label">Statut paiement</label>
-            <select className="input" value={form.statut} onChange={set('statut')}>
-              {STATUTS.map((s) => <option key={s}>{s}</option>)}
+            <select className="input" value={form.statut_paiement} onChange={set('statut_paiement')}>
+              {STATUTS_DB.map((s) => <option key={s} value={s}>{STATUT_LABEL[s]}</option>)}
             </select>
           </div>
           <div className="flex gap-3 pt-2">
-            <button type="button" className="btn-secondary flex-1" onClick={() => setModalOpen(false)}>
-              Annuler
-            </button>
+            <button type="button" className="btn-secondary flex-1" onClick={() => setModalOpen(false)}>Annuler</button>
             <button type="submit" disabled={saving} className="btn-primary flex-1 flex items-center justify-center gap-2">
               {saving && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
               {saving ? 'Enregistrement...' : 'Enregistrer'}

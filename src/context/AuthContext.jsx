@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState } from 'react'
 import api from '../services/api'
 
 const AuthContext = createContext(null)
@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
       setUser(data.user)
       return { ok: true }
     } catch (err) {
-      return { ok: false, message: err.response?.data?.message || 'Erreur de connexion' }
+      return { ok: false, message: err.response?.data?.error || 'Erreur de connexion' }
     } finally {
       setLoading(false)
     }
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
       setUser(data.user)
       return { ok: true }
     } catch (err) {
-      return { ok: false, message: err.response?.data?.message || "Erreur d'inscription" }
+      return { ok: false, message: err.response?.data?.error || "Erreur d'inscription" }
     } finally {
       setLoading(false)
     }
@@ -46,8 +46,10 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  const isAdmin = user?.role === 'superadmin'
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   )
