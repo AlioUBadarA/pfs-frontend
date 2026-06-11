@@ -4,15 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import ImpersonationBanner from './ImpersonationBanner'
 
 const USER_NAV = [
-  { to: '/',            label: 'Dashboard',   end: true },
-  { to: '/ventes',      label: 'Ventes' },
-  { to: '/creances',    label: 'Créances' },
-  { to: '/clients',     label: 'Clients' },
-  { to: '/pilotage',    label: 'Pilotage' },
-  { to: '/forecast',    label: 'Forecast' },
-  { to: '/actions',     label: 'Actions' },
-  { to: '/prospection', label: 'Prospection' },
-  { to: '/rentabilite', label: 'Rentabilité' },
+  { to: '/',         label: 'Dashboard', end: true },
+  { to: '/ventes',   label: 'Ventes' },
+  { to: '/crm',      label: 'CRM' },
+  { to: '/pilotage', label: 'Pilotage' },
 ]
 
 const RIZIER_EXTRA = [

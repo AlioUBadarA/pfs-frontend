@@ -2,17 +2,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Layout from './components/Layout'
 import Login from './pages/Login'
-import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
-import Ventes from './pages/Ventes'
-import Creances from './pages/Creances'
-import Clients from './pages/Clients'
-import Pilotage from './pages/Pilotage'
-import Forecast from './pages/Forecast'
-import Actions from './pages/Actions'
-import Prospection from './pages/Prospection'
-import Rentabilite from './pages/Rentabilite'
-import Equipe from './pages/Equipe'
+import VentesGroup from './pages/VentesGroup'
+import CRMGroup from './pages/CRMGroup'
+import PilotageGroup from './pages/PilotageGroup'
+import EquipeGroup from './pages/EquipeGroup'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminUserDetail from './pages/admin/AdminUserDetail'
 import AdminAudit from './pages/admin/AdminAudit'
@@ -50,25 +44,28 @@ function RizierRoute({ children }) {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<Navigate to="/login" replace />} />
 
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-        <Route index           element={<RootRedirect />} />
-        <Route path="ventes"      element={<Ventes />} />
-        <Route path="creances"    element={<Creances />} />
-        <Route path="clients"     element={<Clients />} />
-        <Route path="pilotage"    element={<Pilotage />} />
-        <Route path="forecast"    element={<Forecast />} />
-        <Route path="actions"     element={<Actions />} />
-        <Route path="prospection" element={<Prospection />} />
-        <Route path="rentabilite" element={<Rentabilite />} />
-        <Route path="equipe"      element={<RizierRoute><Equipe /></RizierRoute>} />
+        <Route index       element={<RootRedirect />} />
+        <Route path="ventes"  element={<VentesGroup />} />
+        <Route path="crm"     element={<CRMGroup />} />
+        <Route path="pilotage" element={<PilotageGroup />} />
+        <Route path="equipe"  element={<RizierRoute><EquipeGroup /></RizierRoute>} />
+
+        {/* Redirects anciens liens */}
+        <Route path="creances"    element={<Navigate to="/ventes" replace />} />
+        <Route path="rentabilite" element={<Navigate to="/ventes" replace />} />
+        <Route path="clients"     element={<Navigate to="/crm" replace />} />
+        <Route path="prospection" element={<Navigate to="/crm" replace />} />
+        <Route path="forecast"    element={<Navigate to="/pilotage" replace />} />
+        <Route path="actions"     element={<Navigate to="/pilotage" replace />} />
 
         {/* Admin */}
-        <Route path="admin"              element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-        <Route path="admin/users/:id"    element={<AdminRoute><AdminUserDetail /></AdminRoute>} />
-        <Route path="admin/audit"        element={<AdminRoute><AdminAudit /></AdminRoute>} />
+        <Route path="admin"           element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="admin/users/:id" element={<AdminRoute><AdminUserDetail /></AdminRoute>} />
+        <Route path="admin/audit"     element={<AdminRoute><AdminAudit /></AdminRoute>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
