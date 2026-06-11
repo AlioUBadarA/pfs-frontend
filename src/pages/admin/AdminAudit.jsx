@@ -15,7 +15,7 @@ const ACTION_LABELS = {
 
 const fmtDatetime = (d) => d
   ? new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
-  : '—'
+  : '-'
 
 export default function AdminAudit() {
   const [logs, setLogs]       = useState([])
@@ -95,16 +95,16 @@ export default function AdminAudit() {
                   <tr key={log.id} className="hover:bg-gray-50">
                     <td className="table-cell text-xs whitespace-nowrap text-gray-500">{fmtDatetime(log.created_at)}</td>
                     <td className="table-cell text-sm">
-                      <span className="font-medium">{log.actor_nom || '—'}</span>
+                      <span className="font-medium">{log.actor_nom || '-'}</span>
                     </td>
                     <td className="table-cell">
                       <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${meta.color}`}>
                         {meta.label}
                       </span>
                     </td>
-                    <td className="table-cell text-sm">{log.target_nom || '—'}</td>
+                    <td className="table-cell text-sm">{log.target_nom || '-'}</td>
                     <td className="table-cell text-xs text-gray-500 max-w-[200px] truncate">
-                      {log.detail ? JSON.stringify(log.detail) : '—'}
+                      {log.detail ? JSON.stringify(log.detail) : '-'}
                     </td>
                   </tr>
                 )

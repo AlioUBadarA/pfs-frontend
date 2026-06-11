@@ -7,8 +7,8 @@ import StatutBadge from '../components/StatutBadge'
 const STATUTS_DB   = ['En cours', 'Paye', 'En retard']
 const STATUT_LABEL = { 'Paye': 'Payé', 'En cours': 'En cours', 'En retard': 'En retard' }
 
-const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '—'
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—'
+const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '-'
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '-'
 
 const VENTE_INIT = {
   client_nom: '', produit: '', quantite: '', prix_unitaire: '',
@@ -93,7 +93,7 @@ export default function Ventes() {
   // Montant calculé en temps réel dans le formulaire
   const montantCalc = form.quantite && form.prix_unitaire
     ? (Number(form.quantite) * Number(form.prix_unitaire)).toLocaleString('fr-FR') + ' F'
-    : '—'
+    : '-'
 
   return (
     <div className="space-y-5">

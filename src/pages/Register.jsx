@@ -33,7 +33,7 @@ export default function Register() {
             <span className="text-white font-bold text-lg">PF</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Créer un compte</h1>
-          <p className="text-gray-500 text-sm mt-1">PFS Commercial — Riziers du Sénégal</p>
+          <p className="text-gray-500 text-sm mt-1">PFS Commercial - Riziers du Sénégal</p>
         </div>
 
         <div className="card shadow-sm">

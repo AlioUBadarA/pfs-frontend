@@ -55,7 +55,7 @@ export default function Forecast() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-xl font-bold text-gray-900">Forecast — Projection annuelle</h2>
+        <h2 className="text-xl font-bold text-gray-900">Forecast - Projection annuelle</h2>
         <div className="flex items-center gap-2">
           <label className="text-sm text-gray-600">Année</label>
           <select className="input w-auto" value={annee} onChange={e => setAnnee(+e.target.value)}>
@@ -79,7 +79,7 @@ export default function Forecast() {
         <div className="card text-center">
           <p className="text-xs text-gray-500 mb-1">Avancement</p>
           <p className={`text-xl font-bold ${avancement == null ? 'text-gray-400' : avancement >= 100 ? 'text-green-600' : avancement >= 70 ? 'text-yellow-600' : 'text-red-600'}`}>
-            {avancement != null ? `${avancement}%` : '—'}
+            {avancement != null ? `${avancement}%` : '-'}
           </p>
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function Forecast() {
                         </div>
                         <span className="text-xs font-semibold w-10 text-right">{pct}%</span>
                       </div>
-                    ) : <span className="text-xs text-gray-400">—</span>}
+                    ) : <span className="text-xs text-gray-400">-</span>}
                   </td>
                   <td className="table-cell">
                     <button

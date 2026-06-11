@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import api from '../services/api'
 
 const fmt     = (n) => Number(n).toLocaleString('fr-FR') + ' F'
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—'
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '-'
 
 function urgenceColor(jours) {
   if (jours == null) return 'bg-gray-100 text-gray-600'
@@ -100,10 +100,10 @@ export default function Actions() {
                     <td className="table-cell whitespace-nowrap">{fmtDate(v.date_vente)}</td>
                     <td className="table-cell">
                       <span className={`text-xs font-semibold px-2 py-1 rounded-full ${urgenceColor(v.jours_retard)}`}>
-                        {v.jours_retard != null ? `${v.jours_retard}j` : '—'}
+                        {v.jours_retard != null ? `${v.jours_retard}j` : '-'}
                       </span>
                     </td>
-                    <td className="table-cell text-xs text-gray-500">{v.vendeur_nom || '—'}</td>
+                    <td className="table-cell text-xs text-gray-500">{v.vendeur_nom || '-'}</td>
                     <td className="table-cell">
                       <button onClick={() => markPaid(v.id)} className="text-xs btn-primary py-1 px-3">
                         Marquer payé
@@ -136,15 +136,15 @@ export default function Actions() {
                   <tr key={c.id} className="hover:bg-gray-50">
                     <td className="table-cell font-medium">{c.nom}</td>
                     <td className="table-cell text-xs text-gray-600">{c.type}</td>
-                    <td className="table-cell text-xs text-gray-500">{c.zone || '—'}</td>
-                    <td className="table-cell text-xs">{c.telephone || '—'}</td>
+                    <td className="table-cell text-xs text-gray-500">{c.zone || '-'}</td>
+                    <td className="table-cell text-xs">{c.telephone || '-'}</td>
                     <td className="table-cell whitespace-nowrap text-sm">{fmtDate(c.derniere_vente)}</td>
                     <td className="table-cell">
                       <span className={`text-xs font-semibold px-2 py-1 rounded-full ${urgenceColor(c.jours_inactif)}`}>
                         {c.jours_inactif != null ? `${c.jours_inactif}j` : 'Jamais'}
                       </span>
                     </td>
-                    <td className="table-cell text-xs text-gray-500">{c.vendeur_nom || '—'}</td>
+                    <td className="table-cell text-xs text-gray-500">{c.vendeur_nom || '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -180,14 +180,14 @@ export default function Actions() {
                         {p.priorite}
                       </span>
                     </td>
-                    <td className="table-cell text-xs text-gray-500">{p.zone || '—'}</td>
-                    <td className="table-cell text-xs">{p.telephone || '—'}</td>
+                    <td className="table-cell text-xs text-gray-500">{p.zone || '-'}</td>
+                    <td className="table-cell text-xs">{p.telephone || '-'}</td>
                     <td className="table-cell">
                       <span className={`text-xs font-semibold px-2 py-1 rounded-full ${urgenceColor(p.jours_sans_contact)}`}>
-                        {p.jours_sans_contact != null ? `${p.jours_sans_contact}j` : '—'}
+                        {p.jours_sans_contact != null ? `${p.jours_sans_contact}j` : '-'}
                       </span>
                     </td>
-                    <td className="table-cell text-xs text-gray-500">{p.vendeur_nom || '—'}</td>
+                    <td className="table-cell text-xs text-gray-500">{p.vendeur_nom || '-'}</td>
                     <td className="table-cell">
                       <select
                         className="text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none cursor-pointer"

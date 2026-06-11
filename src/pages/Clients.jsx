@@ -12,7 +12,7 @@ const CLIENT_INIT = {
   telephone: '', volume_estime: '', valorise: '', horaire: '',
 }
 
-const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '—'
+const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '-'
 
 export default function Clients() {
   const [clients, setClients] = useState([])
@@ -149,7 +149,7 @@ export default function Clients() {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editing ? `Modifier — ${editing.nom}` : 'Nouveau client'}
+        title={editing ? `Modifier : ${editing.nom}` : 'Nouveau client'}
       >
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
@@ -210,7 +210,7 @@ export default function Clients() {
 }
 
 function ClientCard({ client: c, onEdit, onChangeStatut }) {
-  const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '—'
+  const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '-'
 
   return (
     <div className="card hover:shadow-md transition-shadow">

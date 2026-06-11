@@ -7,10 +7,10 @@ import KpiCard from '../components/KpiCard'
 import StatutBadge from '../components/StatutBadge'
 
 const fmt = (n) =>
-  n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '—'
+  n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '-'
 
 const pct = (n) =>
-  n != null ? Number(n).toFixed(1) + ' %' : '—'
+  n != null ? Number(n).toFixed(1) + ' %' : '-'
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload?.length) {
@@ -64,7 +64,7 @@ export default function Dashboard() {
         />
         <KpiCard
           title="Clients actifs"
-          value={kpis.clients_actifs ?? '—'}
+          value={kpis.clients_actifs ?? '-'}
           icon="👥"
           color="#388E3C"
         />
@@ -80,7 +80,7 @@ export default function Dashboard() {
         {/* Bar chart */}
         <div className="card lg:col-span-2">
           <h3 className="text-sm font-semibold text-gray-700 mb-4">
-            Chiffre d'affaires — 6 derniers mois
+            Chiffre d'affaires - 6 derniers mois
           </h3>
           {chartData.length === 0 ? (
             <p className="text-sm text-gray-400 py-8 text-center">Aucune donnée</p>

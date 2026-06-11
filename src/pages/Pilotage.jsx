@@ -4,8 +4,8 @@ import KpiCard from '../components/KpiCard'
 
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
 
-const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '—'
-const pct = (n) => n != null ? Number(n).toFixed(1) + ' %' : '—'
+const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '-'
+const pct = (n) => n != null ? Number(n).toFixed(1) + ' %' : '-'
 
 function getWeekKey(date = new Date()) {
   const d = new Date(date)
@@ -208,7 +208,7 @@ export default function Pilotage() {
                     <td className={`table-cell text-right font-semibold whitespace-nowrap ${e >= 0 ? 'text-[#1B5E20]' : 'text-[#CC0000]'}`}>
                       {row.objectif !== '' || row.realise !== ''
                         ? `${e >= 0 ? '+' : ''}${e.toLocaleString('fr-FR')} F`
-                        : '—'}
+                        : '-'}
                     </td>
                     <td className="table-cell">
                       <input

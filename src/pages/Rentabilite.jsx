@@ -129,7 +129,7 @@ export default function Rentabilite() {
                     <td className="table-cell text-right text-blue-700 font-medium">{fmt(r.marge)}</td>
                     <td className="table-cell text-center"><TauxBadge taux={r.taux_marge} /></td>
                     <td className="table-cell text-center text-sm">{r.nb_ventes}</td>
-                    <td className="table-cell text-xs text-gray-500">{r.vendeur_nom || '—'}</td>
+                    <td className="table-cell text-xs text-gray-500">{r.vendeur_nom || '-'}</td>
                   </tr>
                 ))}
               </tbody>

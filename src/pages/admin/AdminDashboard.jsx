@@ -5,7 +5,7 @@ import KpiCard from '../../components/KpiCard'
 import StatutBadge from '../../components/StatutBadge'
 import { useAuth } from '../../context/AuthContext'
 
-const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '—'
+const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '-'
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : 'jamais'
 
 export default function AdminDashboard() {
@@ -172,10 +172,10 @@ export default function AdminDashboard() {
                 <tr key={u.id} className={`hover:bg-gray-50 ${u.suspended ? 'bg-red-50' : ''}`}>
                   <td className="table-cell">
                     <div className="font-semibold text-gray-900">{u.nom}</div>
-                    <div className="text-xs text-gray-400">{u.rizerie || '—'}</div>
+                    <div className="text-xs text-gray-400">{u.rizerie || '-'}</div>
                   </td>
                   <td className="table-cell text-xs">{u.email}</td>
-                  <td className="table-cell text-xs">{u.ville || '—'}</td>
+                  <td className="table-cell text-xs">{u.ville || '-'}</td>
                   <td className="table-cell text-right font-medium text-[#1B5E20]">{fmt(u.ca_total)}</td>
                   <td className="table-cell text-center">{u.nb_ventes}</td>
                   <td className="table-cell text-center">{u.nb_clients}</td>
@@ -280,7 +280,7 @@ export default function AdminDashboard() {
 
       {/* Modal : suspendre */}
       {modal?.type === 'suspend' && (
-        <ModalWrap title={`Suspendre — ${modal.user.nom}`} onClose={() => setModal(null)}>
+        <ModalWrap title={`Suspendre : ${modal.user.nom}`} onClose={() => setModal(null)}>
           <p className="text-sm text-gray-600 mb-3">
             L'utilisateur ne pourra plus se connecter. Il verra la raison à la prochaine tentative.
           </p>

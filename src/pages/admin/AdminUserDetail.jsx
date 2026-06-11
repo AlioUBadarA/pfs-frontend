@@ -5,8 +5,8 @@ import KpiCard from '../../components/KpiCard'
 import StatutBadge from '../../components/StatutBadge'
 import { useAuth } from '../../context/AuthContext'
 
-const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '—'
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—'
+const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '-'
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '-'
 
 export default function AdminUserDetail() {
   const { id } = useParams()
@@ -135,7 +135,7 @@ export default function AdminUserDetail() {
       {user.suspended && (
         <div className="bg-red-50 border border-red-300 rounded-lg px-4 py-3 flex items-center gap-2">
           <span className="text-red-600 font-semibold text-sm">🚫 Compte suspendu</span>
-          {user.suspended_reason && <span className="text-red-500 text-sm">— {user.suspended_reason}</span>}
+          {user.suspended_reason && <span className="text-red-500 text-sm">: {user.suspended_reason}</span>}
           {user.suspended_at && <span className="text-red-400 text-xs ml-auto">le {fmtDate(user.suspended_at)}</span>}
         </div>
       )}
@@ -146,9 +146,9 @@ export default function AdminUserDetail() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
           <div><span className="text-gray-500">Nom</span><p className="font-medium">{user.nom}</p></div>
           <div><span className="text-gray-500">Email</span><p className="font-medium">{user.email}</p></div>
-          <div><span className="text-gray-500">Rizerie</span><p className="font-medium">{user.rizerie || '—'}</p></div>
-          <div><span className="text-gray-500">Téléphone</span><p className="font-medium">{user.telephone || '—'}</p></div>
-          <div><span className="text-gray-500">Ville</span><p className="font-medium">{user.ville || '—'}</p></div>
+          <div><span className="text-gray-500">Rizerie</span><p className="font-medium">{user.rizerie || '-'}</p></div>
+          <div><span className="text-gray-500">Téléphone</span><p className="font-medium">{user.telephone || '-'}</p></div>
+          <div><span className="text-gray-500">Ville</span><p className="font-medium">{user.ville || '-'}</p></div>
           <div><span className="text-gray-500">Inscrit le</span><p className="font-medium">{fmtDate(user.created_at)}</p></div>
         </div>
       </div>
@@ -202,7 +202,7 @@ export default function AdminUserDetail() {
                   <span className="font-medium">{c.nom}</span>
                   <StatutBadge statut={c.statut} />
                 </div>
-                <p className="text-xs text-gray-500">{c.type} · {c.zone || '—'}</p>
+                <p className="text-xs text-gray-500">{c.type} · {c.zone || '-'}</p>
               </div>
             ))}
           </div>
@@ -213,7 +213,7 @@ export default function AdminUserDetail() {
       {pilotage.length > 0 && (
         <div className="card p-0 overflow-x-auto">
           <div className="px-4 py-3 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-700">Pilotage — 8 dernières semaines</h3>
+            <h3 className="text-sm font-semibold text-gray-700">Pilotage - 8 dernières semaines</h3>
           </div>
           <table className="w-full text-left border-collapse">
             <thead>
@@ -281,7 +281,7 @@ export default function AdminUserDetail() {
 
       {/* Modal : suspendre */}
       {showSuspend && (
-        <ModalWrap title={`Suspendre — ${user.nom}`} onClose={() => setShowSuspend(false)}>
+        <ModalWrap title={`Suspendre : ${user.nom}`} onClose={() => setShowSuspend(false)}>
           <p className="text-sm text-gray-600 mb-3">L'utilisateur ne pourra plus se connecter.</p>
           <textarea className="input resize-none" rows={3} placeholder="Raison (optionnel)..." value={suspendReason} onChange={(e) => setSuspendReason(e.target.value)} />
           <div className="flex gap-3 mt-4">

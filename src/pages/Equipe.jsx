@@ -3,7 +3,7 @@ import api from '../services/api'
 import Modal from '../components/Modal'
 
 const fmt     = (n) => Number(n).toLocaleString('fr-FR') + ' F'
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—'
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '-'
 
 const INIT = { nom: '', email: '', password: '', telephone: '' }
 
@@ -147,7 +147,7 @@ export default function Equipe() {
                 <tr key={v.id} className="hover:bg-gray-50">
                   <td className="table-cell font-medium">{v.nom}</td>
                   <td className="table-cell text-sm text-gray-600">{v.email}</td>
-                  <td className="table-cell text-sm">{v.telephone || '—'}</td>
+                  <td className="table-cell text-sm">{v.telephone || '-'}</td>
                   <td className="table-cell text-center font-medium">{v.nb_ventes}</td>
                   <td className="table-cell text-right font-semibold text-[#1B5E20]">{fmt(v.ca_total)}</td>
                   <td className="table-cell whitespace-nowrap text-sm">{fmtDate(v.derniere_vente)}</td>
@@ -227,7 +227,7 @@ export default function Equipe() {
       </Modal>
 
       {/* Modal reset mot de passe */}
-      <Modal open={!!pwdModal} onClose={() => setPwdModal(null)} title={`Mot de passe — ${pwdModal?.nom}`}>
+      <Modal open={!!pwdModal} onClose={() => setPwdModal(null)} title={`Mot de passe : ${pwdModal?.nom}`}>
         <form onSubmit={handlePwd} className="space-y-4">
           <div>
             <label className="label">Nouveau mot de passe *</label>

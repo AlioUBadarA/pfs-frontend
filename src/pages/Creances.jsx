@@ -4,7 +4,7 @@ import KpiCard from '../components/KpiCard'
 import StatutBadge from '../components/StatutBadge'
 
 const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '0 F'
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—'
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '-'
 
 export default function Creances() {
   const [data, setData]       = useState({ creances: [], kpis: {} })

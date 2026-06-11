@@ -115,7 +115,7 @@ export default function Prospection() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h2 className="text-xl font-bold text-gray-900">Prospection — Pipeline</h2>
+        <h2 className="text-xl font-bold text-gray-900">Prospection - Pipeline</h2>
         <button onClick={openNew} className="btn-primary text-sm">+ Nouveau prospect</button>
       </div>
 
@@ -156,9 +156,9 @@ export default function Prospection() {
               {items.map(item => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="table-cell font-medium">{item.nom}</td>
-                  <td className="table-cell text-xs text-gray-600">{item.type_client || '—'}</td>
-                  <td className="table-cell text-xs text-gray-500">{item.zone || '—'}</td>
-                  <td className="table-cell text-xs">{item.telephone || '—'}</td>
+                  <td className="table-cell text-xs text-gray-600">{item.type_client || '-'}</td>
+                  <td className="table-cell text-xs text-gray-500">{item.zone || '-'}</td>
+                  <td className="table-cell text-xs">{item.telephone || '-'}</td>
                   <td className="table-cell">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                       item.priorite === 'Haute' ? 'bg-red-100 text-red-700' :
@@ -177,9 +177,9 @@ export default function Prospection() {
                     </select>
                   </td>
                   <td className="table-cell text-xs whitespace-nowrap">
-                    {item.date_contact ? new Date(item.date_contact).toLocaleDateString('fr-FR') : '—'}
+                    {item.date_contact ? new Date(item.date_contact).toLocaleDateString('fr-FR') : '-'}
                   </td>
-                  <td className="table-cell text-xs text-gray-500">{item.vendeur_nom || '—'}</td>
+                  <td className="table-cell text-xs text-gray-500">{item.vendeur_nom || '-'}</td>
                   <td className="table-cell">
                     <div className="flex gap-2">
                       <button onClick={() => openEdit(item)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">Éditer</button>
@@ -203,7 +203,7 @@ export default function Prospection() {
             <div>
               <label className="label">Type de client</label>
               <select className="input" value={form.type_client} onChange={set('type_client')}>
-                <option value="">— Choisir —</option>
+                <option value="">Choisir...</option>
                 {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
