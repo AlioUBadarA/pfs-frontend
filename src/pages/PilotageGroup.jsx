@@ -7,8 +7,8 @@ import Argumentaire from './Argumentaire'
 
 const TABS = [
   { key: 'planning',    label: 'Planning semaine' },
-  { key: 'forecast',    label: 'Forecast' },
   { key: 'actions',     label: 'Actions' },
+  { key: 'forecast',    label: 'Forecast' },
   { key: 'argumentaire',label: 'Argumentaire' },
 ]
 
