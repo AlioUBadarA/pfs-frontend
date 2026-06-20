@@ -74,7 +74,7 @@ export default function Clients() {
       setModalOpen(false)
       load()
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de la sauvegarde')
+      setError(err.response?.data?.error || 'Erreur lors de la sauvegarde')
     } finally {
       setSaving(false)
     }

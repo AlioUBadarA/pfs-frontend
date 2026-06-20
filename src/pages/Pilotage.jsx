@@ -24,7 +24,6 @@ export default function Pilotage() {
   const [semaine, setSemaine] = useState(getWeekKey())
   const [rows, setRows] = useState(buildDefaultRows())
   const [actions, setActions] = useState('')
-  const [kpis, setKpis] = useState({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savingActions, setSavingActions] = useState(false)
@@ -33,17 +32,18 @@ export default function Pilotage() {
 
   const load = useCallback(() => {
     setLoading(true)
-    api.get(`/api/pilotage/${semaine}`)
-      .then((r) => {
-        const d = r.data
-        setRows(d?.jours?.length ? d.jours : buildDefaultRows())
-        setActions(d?.actions_correctives || '')
-        setKpis(d?.kpis || {})
+    Promise.all([
+      api.get(`/api/pilotage/${semaine}`),
+      api.get(`/api/pilotage/${semaine}/actions`),
+    ])
+      .then(([joursRes, actionsRes]) => {
+        const jours = joursRes.data
+        setRows(Array.isArray(jours) && jours.length ? jours : buildDefaultRows())
+        setActions(actionsRes.data?.contenu || '')
       })
       .catch(() => {
         setRows(buildDefaultRows())
         setActions('')
-        setKpis({})
       })
       .finally(() => setLoading(false))
   }, [semaine])
@@ -74,7 +74,7 @@ export default function Pilotage() {
       setSuccess('Semaine enregistrée avec succès')
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      setError(err.response?.data?.message || "Erreur d'enregistrement")
+      setError(err.response?.data?.error || "Erreur d'enregistrement")
     } finally {
       setSaving(false)
     }
@@ -84,7 +84,7 @@ export default function Pilotage() {
     setSavingActions(true)
     setError('')
     try {
-      await api.put(`/api/pilotage/${semaine}/actions`, { actions_correctives: actions })
+      await api.put(`/api/pilotage/${semaine}/actions`, { contenu: actions })
       setSuccess('Actions correctives enregistrées')
       setTimeout(() => setSuccess(''), 3000)
     } catch {
@@ -124,25 +124,25 @@ export default function Pilotage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           title="Objectif semaine"
-          value={fmt(totalObjectif || kpis.objectif_semaine)}
+          value={fmt(totalObjectif)}
           icon="🎯"
           color="#1B5E20"
         />
         <KpiCard
           title="Réalisé"
-          value={fmt(totalRealise || kpis.realise)}
+          value={fmt(totalRealise)}
           icon="✅"
           color="#388E3C"
         />
         <KpiCard
           title="Écart"
-          value={fmt(totalEcart !== 0 ? totalEcart : kpis.ecart)}
+          value={fmt(totalEcart)}
           icon={totalEcart >= 0 ? '📈' : '📉'}
           color={totalEcart >= 0 ? '#1B5E20' : '#CC0000'}
         />
         <KpiCard
           title="Taux d'exécution"
-          value={pct(tauxExec || kpis.taux_execution)}
+          value={pct(tauxExec)}
           icon="📊"
           color={tauxExec >= 80 ? '#1B5E20' : '#F9A825'}
         />
