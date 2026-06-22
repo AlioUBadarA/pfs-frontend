@@ -4,10 +4,14 @@ import api from '../../services/api'
 import KpiCard from '../../components/KpiCard'
 import StatutBadge from '../../components/StatutBadge'
 import PageTabs from '../../components/PageTabs'
+import LocationFields from '../../components/LocationFields'
+import PhoneField from '../../components/PhoneField'
 import { useAuth } from '../../context/AuthContext'
+import Country from 'country-state-city/lib/country'
 
 const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '-'
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : 'jamais'
+const fmtPays = (iso) => iso ? (Country.getCountryByCode(iso)?.flag || '') + ' ' + (Country.getCountryByCode(iso)?.name || iso) : null
 
 const BASE_TABS = [
   { key: 'rizeries', label: 'Rizeries' },
@@ -31,7 +35,7 @@ export default function AdminDashboard() {
   const [saving, setSaving]     = useState(false)
 
   // Formulaires
-  const RIZERIE_INIT = { nom: '', ville: '', telephone: '' }
+  const RIZERIE_INIT = { nom: '', pays: '', region: '', ville: '', telephone: '' }
   const COMPTE_INIT  = { nom: '', email: '', password: '', rizerie_id: '', telephone: '', ville: '' }
   const SUPPORT_INIT = { nom: '', email: '', password: '' }
   const [rForm, setRForm] = useState(RIZERIE_INIT)
@@ -166,7 +170,7 @@ export default function AdminDashboard() {
       {tab === 'rizeries' && (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <button onClick={() => { setRForm(RIZERIE_INIT); setModal({ type: 'create-rizerie' }) }} className="btn-primary text-sm">
+            <button onClick={() => { setRForm(RIZERIE_INIT); setError(''); setModal({ type: 'create-rizerie' }) }} className="btn-primary text-sm">
               + Créer une rizerie
             </button>
           </div>
@@ -177,7 +181,7 @@ export default function AdminDashboard() {
           ) : rizeries.length === 0 ? (
             <div className="card text-center py-10">
               <p className="text-gray-400 text-sm mb-3">Aucune rizerie créée</p>
-              <button onClick={() => { setRForm(RIZERIE_INIT); setModal({ type: 'create-rizerie' }) }} className="btn-primary text-sm">
+              <button onClick={() => { setRForm(RIZERIE_INIT); setError(''); setModal({ type: 'create-rizerie' }) }} className="btn-primary text-sm">
                 + Créer la première rizerie
               </button>
             </div>
@@ -185,7 +189,7 @@ export default function AdminDashboard() {
             <div className="card p-0 overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr>{['Rizerie', 'Ville', 'Téléphone', 'Comptes', 'CA total', 'Actions'].map(h => (
+                  <tr>{['Rizerie', 'Pays', 'Ville / Région', 'Téléphone', 'Comptes', 'CA total', 'Actions'].map(h => (
                     <th key={h} className="table-header whitespace-nowrap">{h}</th>
                   ))}</tr>
                 </thead>
@@ -193,14 +197,15 @@ export default function AdminDashboard() {
                   {rizeries.map(r => (
                     <tr key={r.id} className="hover:bg-gray-50">
                       <td className="table-cell font-semibold text-gray-900">{r.nom}</td>
-                      <td className="table-cell text-sm text-gray-600">{r.ville || '-'}</td>
+                      <td className="table-cell text-sm text-gray-600 whitespace-nowrap">{fmtPays(r.pays) || '-'}</td>
+                      <td className="table-cell text-sm text-gray-600">{[r.ville, r.region].filter(Boolean).join(', ') || '-'}</td>
                       <td className="table-cell text-sm">{r.telephone || '-'}</td>
                       <td className="table-cell text-center font-medium">{r.nb_comptes}</td>
                       <td className="table-cell text-right font-semibold text-[#1b75bc]">{fmt(r.ca_total)}</td>
                       <td className="table-cell">
                         <div className="flex gap-2 whitespace-nowrap">
                           <button
-                            onClick={() => { setRForm({ nom: r.nom, ville: r.ville || '', telephone: r.telephone || '' }); setModal({ type: 'edit-rizerie', id: r.id }) }}
+                            onClick={() => { setRForm({ nom: r.nom, pays: r.pays || '', region: r.region || '', ville: r.ville || '', telephone: r.telephone || '' }); setError(''); setModal({ type: 'edit-rizerie', id: r.id }) }}
                             className="text-xs text-blue-600 font-medium hover:underline"
                           >
                             Modifier
@@ -240,7 +245,7 @@ export default function AdminDashboard() {
                 </button>
               ))}
             </div>
-            <button onClick={() => { setCForm(COMPTE_INIT); setModal({ type: 'create-compte' }) }} className="btn-primary text-sm">
+            <button onClick={() => { setCForm(COMPTE_INIT); setError(''); setModal({ type: 'create-compte' }) }} className="btn-primary text-sm">
               + Créer un compte
             </button>
           </div>
@@ -293,7 +298,7 @@ export default function AdminDashboard() {
                           </Link>
                           {u.suspended
                             ? <button onClick={() => doSuspend(u.id, false, '')} className="text-xs text-green-700 font-medium hover:underline">Réactiver</button>
-                            : <button onClick={() => { setModal({ type: 'suspend', user: u }); setSuspendReason('') }} className="text-xs text-red-600 font-medium hover:underline">Suspendre</button>
+                            : <button onClick={() => { setModal({ type: 'suspend', user: u }); setSuspendReason(''); setError('') }} className="text-xs text-red-600 font-medium hover:underline">Suspendre</button>
                           }
                         </div>
                       </td>
@@ -310,7 +315,7 @@ export default function AdminDashboard() {
       {tab === 'support' && isSuperadmin && (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <button onClick={() => { setSForm(SUPPORT_INIT); setModal({ type: 'create-support' }) }} className="btn-primary text-sm">
+            <button onClick={() => { setSForm(SUPPORT_INIT); setError(''); setModal({ type: 'create-support' }) }} className="btn-primary text-sm">
               + Créer un compte support
             </button>
           </div>
@@ -349,22 +354,21 @@ export default function AdminDashboard() {
 
       {/* Modal : créer une rizerie */}
       {modal?.type === 'create-rizerie' && (
-        <ModalWrap title="Créer une rizerie" onClose={() => setModal(null)}>
+        <ModalWrap title="Créer une rizerie" onClose={() => setModal(null)} error={error}>
           <form onSubmit={handleCreateRizerie} className="space-y-3">
             <div>
               <label className="label">Nom de la rizerie *</label>
               <input className="input" value={rForm.nom} onChange={setR('nom')} required placeholder="Rizerie du Sahel" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label">Ville</label>
-                <input className="input" value={rForm.ville} onChange={setR('ville')} placeholder="Dakar" />
-              </div>
-              <div>
-                <label className="label">Téléphone</label>
-                <input className="input" value={rForm.telephone} onChange={setR('telephone')} placeholder="77 000 00 00" />
-              </div>
-            </div>
+            <LocationFields
+              pays={rForm.pays} region={rForm.region} ville={rForm.ville}
+              onChange={(loc) => setRForm((p) => ({ ...p, ...loc }))}
+            />
+            <PhoneField
+              country={rForm.pays}
+              value={rForm.telephone}
+              onChange={(v) => setRForm((p) => ({ ...p, telephone: v }))}
+            />
             <div className="flex gap-3 pt-2">
               <button type="button" className="btn-secondary flex-1" onClick={() => setModal(null)}>Annuler</button>
               <button type="submit" disabled={saving} className="btn-primary flex-1 flex items-center justify-center gap-2">
@@ -378,7 +382,7 @@ export default function AdminDashboard() {
 
       {/* Modal : modifier une rizerie */}
       {modal?.type === 'edit-rizerie' && (
-        <ModalWrap title="Modifier la rizerie" onClose={() => setModal(null)}>
+        <ModalWrap title="Modifier la rizerie" onClose={() => setModal(null)} error={error}>
           <form onSubmit={async (e) => {
             e.preventDefault(); setSaving(true)
             try { await api.put(`/api/admin/rizeries/${modal.id}`, rForm); load(); setModal(null) }
@@ -389,10 +393,15 @@ export default function AdminDashboard() {
               <label className="label">Nom *</label>
               <input className="input" value={rForm.nom} onChange={setR('nom')} required />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><label className="label">Ville</label><input className="input" value={rForm.ville} onChange={setR('ville')} /></div>
-              <div><label className="label">Téléphone</label><input className="input" value={rForm.telephone} onChange={setR('telephone')} /></div>
-            </div>
+            <LocationFields
+              pays={rForm.pays} region={rForm.region} ville={rForm.ville}
+              onChange={(loc) => setRForm((p) => ({ ...p, ...loc }))}
+            />
+            <PhoneField
+              country={rForm.pays}
+              value={rForm.telephone}
+              onChange={(v) => setRForm((p) => ({ ...p, telephone: v }))}
+            />
             <div className="flex gap-3 pt-2">
               <button type="button" className="btn-secondary flex-1" onClick={() => setModal(null)}>Annuler</button>
               <button type="submit" disabled={saving} className="btn-primary flex-1">
@@ -405,16 +414,16 @@ export default function AdminDashboard() {
 
       {/* Modal : créer un compte */}
       {modal?.type === 'create-compte' && (
-        <ModalWrap title="Créer un compte" onClose={() => setModal(null)}>
+        <ModalWrap title="Créer un compte" onClose={() => setModal(null)} error={error}>
           <form onSubmit={handleCreateCompte} className="space-y-3">
             <div>
               <label className="label">Rattacher à une rizerie *</label>
               <select className="input" value={cForm.rizerie_id} onChange={setC('rizerie_id')} required>
                 <option value="">Choisir une rizerie...</option>
-                {rizeries.map(r => <option key={r.id} value={r.id}>{r.nom}{r.ville ? ` — ${r.ville}` : ''}</option>)}
+                {rizeries.map(r => <option key={r.id} value={r.id}>{r.nom}{r.ville ? ` — ${r.ville}` : ''}{r.pays ? ` (${fmtPays(r.pays)})` : ''}</option>)}
               </select>
               {rizeries.length === 0 && (
-                <p className="text-xs text-orange-600 mt-1">Aucune rizerie existante. <button type="button" className="underline" onClick={() => setModal({ type: 'create-rizerie' })}>Créer d'abord une rizerie</button></p>
+                <p className="text-xs text-orange-600 mt-1">Aucune rizerie existante. <button type="button" className="underline" onClick={() => { setRForm(RIZERIE_INIT); setError(''); setModal({ type: 'create-rizerie' }) }}>Créer d'abord une rizerie</button></p>
               )}
             </div>
             <div>
@@ -430,7 +439,11 @@ export default function AdminDashboard() {
               <input type="text" className="input" value={cForm.password} onChange={setC('password')} required minLength={6} placeholder="Min. 6 caractères" />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label className="label">Téléphone</label><input className="input" value={cForm.telephone} onChange={setC('telephone')} placeholder="77 000 00 00" /></div>
+              <PhoneField
+                country={rizeries.find((r) => r.id === cForm.rizerie_id)?.pays}
+                value={cForm.telephone}
+                onChange={(v) => setCForm((p) => ({ ...p, telephone: v }))}
+              />
               <div><label className="label">Ville</label><input className="input" value={cForm.ville} onChange={setC('ville')} placeholder="Dakar" /></div>
             </div>
             <div className="flex gap-3 pt-2">
@@ -446,7 +459,7 @@ export default function AdminDashboard() {
 
       {/* Modal : créer un compte support */}
       {modal?.type === 'create-support' && (
-        <ModalWrap title="Créer un compte support" onClose={() => setModal(null)}>
+        <ModalWrap title="Créer un compte support" onClose={() => setModal(null)} error={error}>
           <form onSubmit={handleCreateSupport} className="space-y-3">
             <div>
               <label className="label">Nom complet *</label>
@@ -474,7 +487,7 @@ export default function AdminDashboard() {
 
       {/* Modal : suspendre */}
       {modal?.type === 'suspend' && (
-        <ModalWrap title={`Suspendre : ${modal.user.nom}`} onClose={() => setModal(null)}>
+        <ModalWrap title={`Suspendre : ${modal.user.nom}`} onClose={() => setModal(null)} error={error}>
           <p className="text-sm text-gray-600 mb-3">L'utilisateur ne pourra plus se connecter.</p>
           <div className="flex flex-wrap gap-2 mb-3">
             {['Non-paiement', 'Compte dupliqué', 'Activité suspecte', 'Contrat résilié', 'Demande utilisateur'].map(r => (
@@ -500,7 +513,7 @@ export default function AdminDashboard() {
   )
 }
 
-function ModalWrap({ title, onClose, children }) {
+function ModalWrap({ title, onClose, error, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
@@ -508,6 +521,11 @@ function ModalWrap({ title, onClose, children }) {
           <h3 className="text-base font-semibold text-gray-900">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
         </div>
+        {error && (
+          <div className="mx-6 mt-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+            {error}
+          </div>
+        )}
         <div className="px-6 py-4">{children}</div>
       </div>
     </div>

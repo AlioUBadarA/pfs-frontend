@@ -72,6 +72,7 @@ export default function Clients() {
   const openNew = () => {
     setEditing(null)
     setForm(CLIENT_INIT)
+    setError('')
     setModalOpen(true)
   }
 
@@ -87,6 +88,7 @@ export default function Clients() {
       valorise: c.valorise || '',
       horaire: c.horaire || '',
     })
+    setError('')
     setModalOpen(true)
   }
 
@@ -236,6 +238,7 @@ export default function Clients() {
             <label className="label">Horaire de visite</label>
             <input className="input" placeholder="Lundi 9h–11h" value={form.horaire} onChange={set('horaire')} />
           </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-3 pt-2">
             <button type="button" className="btn-secondary flex-1" onClick={() => setModalOpen(false)}>
               Annuler
