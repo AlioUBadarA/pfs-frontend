@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import api from '../services/api'
 import Panel from '../components/Panel'
 import KpiCard from '../components/KpiCard'
 import DataTable from '../components/DataTable'
+import { useAuth } from '../context/AuthContext'
 
 const fmt = (n) => Number(n || 0).toLocaleString('fr-FR') + ' F'
 
@@ -12,16 +13,30 @@ function TauxBadge({ taux }) {
 }
 
 export default function Managers() {
+  const { isManager } = useAuth()
   const [managers, setManagers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setLoading(true)
     api.get('/api/managers')
       .then((r) => setManagers(r.data))
       .catch(() => setError('Erreur de chargement'))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { load() }, [load])
+
+  const deleteManager = async (mg) => {
+    if (!confirm(`Supprimer le manager "${mg.nom}" ? Son équipe sera rattachée directement à vous.`)) return
+    try {
+      await api.delete(`/api/equipe/${mg.id}`)
+      load()
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erreur suppression')
+    }
+  }
 
   if (loading) return (
     <div className="flex justify-center py-16">
@@ -46,7 +61,16 @@ export default function Managers() {
       )}
 
       {managers.map((mg) => (
-        <Panel key={mg.id} title={`${mg.nom} · Manager`} sub={`Zone ${mg.zone || 'n/a'} · ${mg.nb_com} commercial(aux)`}>
+        <Panel
+          key={mg.id}
+          title={`${mg.nom} · Manager`}
+          sub={`Zone ${mg.zone || 'n/a'} · ${mg.nb_com} commercial(aux)`}
+          right={!isManager && (
+            <button onClick={() => deleteManager(mg)} className="text-xs text-red-600 font-medium hover:underline">
+              Supprimer
+            </button>
+          )}
+        >
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             <KpiCard title="CA cumulé YTD" value={fmt(mg.ca_ytd)} sub={`objectif ${fmt(mg.obj_annuel)}`} color="#1b75bc" />
             <KpiCard title="Atteinte" value={`${Math.round(mg.taux_atteinte)} %`} color={mg.taux_atteinte >= 100 ? '#1B5E20' : mg.taux_atteinte >= 90 ? '#F9A825' : '#CC0000'} />
