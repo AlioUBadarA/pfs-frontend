@@ -13,6 +13,8 @@ const ACTION_LABELS = {
   LOGIN_FAILED:             { label: 'Échec connexion',     color: 'bg-yellow-100 text-yellow-800' },
   SUPPORT_CREATED:          { label: 'Compte support créé', color: 'bg-blue-100 text-blue-800' },
   SUPPORT_DELETED:          { label: 'Compte support supprimé', color: 'bg-red-200 text-red-900' },
+  SUPERADMIN_CREATED:       { label: 'Compte superadmin créé', color: 'bg-purple-100 text-purple-800' },
+  SUPERADMIN_DELETED:       { label: 'Compte superadmin supprimé', color: 'bg-red-200 text-red-900' },
 }
 
 const fmtDatetime = (d) => d

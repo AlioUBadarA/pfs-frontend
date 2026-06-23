@@ -21,12 +21,15 @@ const BASE_TABS = [
 export default function AdminDashboard() {
   const { user: adminUser, startImpersonation, isSuperadmin } = useAuth()
   const navigate = useNavigate()
-  const TABS = isSuperadmin ? [...BASE_TABS, { key: 'support', label: 'Comptes support' }] : BASE_TABS
+  const TABS = isSuperadmin
+    ? [...BASE_TABS, { key: 'support', label: 'Comptes support' }, { key: 'superadmins', label: 'Comptes superadmin' }]
+    : BASE_TABS
   const [tab, setTab]           = useState('rizeries')
   const [stats, setStats]       = useState(null)
   const [rizeries, setRizeries] = useState([])
   const [users, setUsers]       = useState([])
   const [support, setSupport]   = useState([])
+  const [superadmins, setSuperadmins] = useState([])
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState('')
   const [search, setSearch]     = useState('')
@@ -38,9 +41,11 @@ export default function AdminDashboard() {
   const RIZERIE_INIT = { nom: '', pays: '', region: '', ville: '', telephone: '', emplois_baseline: '', masse_salariale_baseline: '', ca_baseline: '' }
   const COMPTE_INIT  = { nom: '', email: '', password: '', rizerie_id: '', telephone: '', ville: '' }
   const SUPPORT_INIT = { nom: '', email: '', password: '' }
+  const SUPERADMIN_INIT = { nom: '', email: '', password: '' }
   const [rForm, setRForm] = useState(RIZERIE_INIT)
   const [cForm, setCForm] = useState(COMPTE_INIT)
   const [sForm, setSForm] = useState(SUPPORT_INIT)
+  const [saForm, setSaForm] = useState(SUPERADMIN_INIT)
   const [suspendReason, setSuspendReason] = useState('')
 
   const load = useCallback(() => {
@@ -50,11 +55,12 @@ export default function AdminDashboard() {
       api.get('/api/admin/rizeries'),
       api.get('/api/admin/users'),
     ]
-    if (isSuperadmin) calls.push(api.get('/api/admin/support'))
+    if (isSuperadmin) calls.push(api.get('/api/admin/support'), api.get('/api/admin/superadmins'))
     Promise.all(calls)
-      .then(([s, r, u, sup]) => {
+      .then(([s, r, u, sup, sa]) => {
         setStats(s.data); setRizeries(r.data); setUsers(u.data)
         if (sup) setSupport(sup.data)
+        if (sa) setSuperadmins(sa.data)
       })
       .catch(() => setError('Erreur de chargement'))
       .finally(() => setLoading(false))
@@ -131,6 +137,26 @@ export default function AdminDashboard() {
     if (!confirm(`Supprimer définitivement le compte support "${s.nom}" ?`)) return
     try {
       await api.delete(`/api/admin/support/${s.id}`)
+      load()
+    } catch (err) { setError(err.response?.data?.error || 'Erreur') }
+  }
+
+  const setSa = (f) => (e) => setSaForm(p => ({ ...p, [f]: e.target.value }))
+
+  const handleCreateSuperadmin = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await api.post('/api/admin/superadmins', saForm)
+      load(); setModal(null); setSaForm(SUPERADMIN_INIT)
+    } catch (err) { setError(err.response?.data?.error || 'Erreur création') }
+    finally { setSaving(false) }
+  }
+
+  const handleDeleteSuperadmin = async (s) => {
+    if (!confirm(`Supprimer définitivement le compte superadmin "${s.nom}" ?`)) return
+    try {
+      await api.delete(`/api/admin/superadmins/${s.id}`)
       load()
     } catch (err) { setError(err.response?.data?.error || 'Erreur') }
   }
@@ -369,6 +395,47 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* ── ONGLET COMPTES SUPERADMIN (vrai superadmin uniquement) ── */}
+      {tab === 'superadmins' && isSuperadmin && (
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <button onClick={() => { setSaForm(SUPERADMIN_INIT); setError(''); setModal({ type: 'create-superadmin' }) }} className="btn-primary text-sm">
+              + Créer un compte superadmin
+            </button>
+          </div>
+          <div className="bg-red-50 border border-red-200 text-red-800 text-sm rounded-lg px-4 py-3">
+            Accès le plus élevé de la plateforme : un superadmin peut créer/supprimer des rizeries, des comptes et d'autres superadmins. À réserver à des personnes de pleine confiance. Il doit toujours en rester au moins un.
+          </div>
+          <div className="card p-0 overflow-x-auto">
+            {superadmins.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-10">Aucun compte superadmin créé</p>
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr>{['Nom', 'Email', 'Créé le', 'Actions'].map(h => (
+                    <th key={h} className="table-header whitespace-nowrap">{h}</th>
+                  ))}</tr>
+                </thead>
+                <tbody>
+                  {superadmins.map(s => (
+                    <tr key={s.id} className="hover:bg-gray-50">
+                      <td className="table-cell font-semibold text-gray-900">{s.nom}</td>
+                      <td className="table-cell text-sm text-gray-600">{s.email}</td>
+                      <td className="table-cell text-xs text-gray-500 whitespace-nowrap">{fmtDate(s.created_at)}</td>
+                      <td className="table-cell">
+                        <button onClick={() => handleDeleteSuperadmin(s)} className="text-xs text-red-600 font-medium hover:underline">
+                          Supprimer
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Modal : créer une rizerie */}
       {modal?.type === 'create-rizerie' && (
         <ModalWrap title="Créer une rizerie" onClose={() => setModal(null)} error={error}>
@@ -501,6 +568,34 @@ export default function AdminDashboard() {
               <input type="text" className="input" value={sForm.password} onChange={setS('password')} required minLength={12} placeholder="Min. 12 caractères" />
             </div>
             <p className="text-xs text-gray-400">Ce compte aura les mêmes accès admin que vous, à l'exception de la gestion des comptes support.</p>
+            <div className="flex gap-3 pt-2">
+              <button type="button" className="btn-secondary flex-1" onClick={() => setModal(null)}>Annuler</button>
+              <button type="submit" disabled={saving} className="btn-primary flex-1 flex items-center justify-center gap-2">
+                {saving && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                {saving ? 'Création...' : 'Créer le compte'}
+              </button>
+            </div>
+          </form>
+        </ModalWrap>
+      )}
+
+      {/* Modal : créer un compte superadmin */}
+      {modal?.type === 'create-superadmin' && (
+        <ModalWrap title="Créer un compte superadmin" onClose={() => setModal(null)} error={error}>
+          <form onSubmit={handleCreateSuperadmin} className="space-y-3">
+            <div>
+              <label className="label">Nom complet *</label>
+              <input className="input" value={saForm.nom} onChange={setSa('nom')} required placeholder="Aïssatou Ndiaye" />
+            </div>
+            <div>
+              <label className="label">Email *</label>
+              <input type="email" className="input" value={saForm.email} onChange={setSa('email')} required placeholder="admin@pfs.sn" />
+            </div>
+            <div>
+              <label className="label">Mot de passe provisoire *</label>
+              <input type="text" className="input" value={saForm.password} onChange={setSa('password')} required minLength={12} placeholder="Min. 12 caractères" />
+            </div>
+            <p className="text-xs text-red-600">Accès complet à la plateforme, y compris la création/suppression d'autres superadmins. À réserver à des personnes de pleine confiance.</p>
             <div className="flex gap-3 pt-2">
               <button type="button" className="btn-secondary flex-1" onClick={() => setModal(null)}>Annuler</button>
               <button type="submit" disabled={saving} className="btn-primary flex-1 flex items-center justify-center gap-2">
