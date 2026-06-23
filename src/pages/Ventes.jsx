@@ -17,6 +17,7 @@ const VENTE_INIT = {
 
 export default function Ventes() {
   const [ventes, setVentes]     = useState([])
+  const [produits, setProduits] = useState([])
   const [loading, setLoading]   = useState(true)
   const [filterMois, setFilterMois]     = useState('')
   const [filterStatut, setFilterStatut] = useState('')
@@ -41,6 +42,7 @@ export default function Ventes() {
   }, [filterMois, filterStatut])
 
   useEffect(() => { load() }, [load])
+  useEffect(() => { api.get('/api/produits').then((r) => setProduits(r.data)).catch(() => {}) }, [])
 
   const openNew = () => {
     setForm({ ...VENTE_INIT, date_vente: new Date().toISOString().slice(0, 10) })
@@ -89,6 +91,12 @@ export default function Ventes() {
   }
 
   const set = (f) => (e) => setForm({ ...form, [f]: e.target.value })
+
+  const setProduit = (e) => {
+    const nom = e.target.value
+    const match = produits.find((p) => p.nom === nom)
+    setForm((p) => ({ ...p, produit: nom, prix_unitaire: !p.prix_unitaire && match ? match.prix_kg : p.prix_unitaire }))
+  }
 
   // Montant calculé en temps réel dans le formulaire
   const montantCalc = form.quantite && form.prix_unitaire
@@ -140,7 +148,7 @@ export default function Ventes() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr>
-                {['Date','Client','Produit','Qté (kg)','P.U.','Montant','Statut','Actions'].map(h => (
+                {['N° transaction','Date','Client','Produit','Qté (kg)','P.U.','Montant','Statut','Actions'].map(h => (
                   <th key={h} className="table-header whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -148,6 +156,7 @@ export default function Ventes() {
             <tbody>
               {ventes.map((v) => (
                 <tr key={v.id} className="hover:bg-gray-50">
+                  <td className="table-cell whitespace-nowrap font-mono text-xs text-gray-500">{v.numero || '-'}</td>
                   <td className="table-cell whitespace-nowrap">{fmtDate(v.date_vente)}</td>
                   <td className="table-cell font-medium">{v.client_nom}</td>
                   <td className="table-cell">{v.produit}</td>
@@ -155,13 +164,18 @@ export default function Ventes() {
                   <td className="table-cell text-right">{fmt(v.prix_unitaire)}</td>
                   <td className="table-cell text-right font-semibold">{fmt(v.montant)}</td>
                   <td className="table-cell">
-                    <select
-                      value={v.statut_paiement}
-                      onChange={(e) => changeStatut(v.id, e.target.value)}
-                      className="text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none cursor-pointer"
-                    >
-                      {STATUTS_DB.map((s) => <option key={s} value={s}>{STATUT_LABEL[s]}</option>)}
-                    </select>
+                    <div className="flex items-center gap-1.5">
+                      <select
+                        value={v.statut_paiement}
+                        onChange={(e) => changeStatut(v.id, e.target.value)}
+                        className="text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none cursor-pointer"
+                      >
+                        {STATUTS_DB.map((s) => <option key={s} value={s}>{STATUT_LABEL[s]}</option>)}
+                      </select>
+                      {v.statut_paiement === 'Paye' && (
+                        <span className="text-xs font-medium text-green-700" title="Transaction clôturée">✓ Clôturée</span>
+                      )}
+                    </div>
                   </td>
                   <td className="table-cell">
                     <button onClick={() => deleteVente(v.id)}
@@ -189,7 +203,10 @@ export default function Ventes() {
           </div>
           <div>
             <label className="label">Produit</label>
-            <input className="input" placeholder="Ex: Riz brisé 25%" value={form.produit} onChange={set('produit')} required />
+            <input className="input" list="produits-list" placeholder="Ex: Riz brisé 25%" value={form.produit} onChange={setProduit} required />
+            <datalist id="produits-list">
+              {produits.map((p) => <option key={p.id} value={p.nom} />)}
+            </datalist>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

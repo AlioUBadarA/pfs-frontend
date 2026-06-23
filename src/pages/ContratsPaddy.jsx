@@ -130,7 +130,7 @@ export default function ContratsPaddy() {
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr>{['Producteur','Zone','Variété','Quantité (kg)','Prix/kg','Valeur','Début','Fin','Statut','Actions'].map(h => (
+              <tr>{['N° contrat','Producteur','Zone','Variété','Quantité (kg)','Prix/kg','Valeur','Début','Fin','Statut','Actions'].map(h => (
                 <th key={h} className="table-header whitespace-nowrap">{h}</th>
               ))}</tr>
             </thead>
@@ -139,6 +139,7 @@ export default function ContratsPaddy() {
                 const valeur = Number(item.quantite_kg || 0) * Number(item.prix_kg || 0)
                 return (
                   <tr key={item.id} className={`hover:bg-gray-50 ${item.statut === 'Terminé' ? 'opacity-50' : ''}`}>
+                    <td className="table-cell font-mono text-xs text-gray-500">{item.numero || '-'}</td>
                     <td className="table-cell font-medium">{item.producteur_nom}</td>
                     <td className="table-cell text-sm text-gray-500">{item.zone || '-'}</td>
                     <td className="table-cell text-sm">{item.variete || '-'}</td>

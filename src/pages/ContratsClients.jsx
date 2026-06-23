@@ -17,6 +17,7 @@ const INIT = { client_nom: '', produit: '', quantite_mensuelle: '', prix_unitair
 export default function ContratsClients() {
   const [items, setItems]     = useState([])
   const [clients, setClients] = useState([])
+  const [produits, setProduits] = useState([])
   const [loading, setLoading] = useState(true)
   const [filterStatut, setFilterStatut] = useState('')
   const [error, setError]     = useState('')
@@ -32,8 +33,9 @@ export default function ContratsClients() {
     Promise.all([
       api.get('/api/contrats/clients', { params }),
       api.get('/api/clients'),
+      api.get('/api/produits'),
     ])
-      .then(([r1, r2]) => { setItems(r1.data); setClients(r2.data) })
+      .then(([r1, r2, r3]) => { setItems(r1.data); setClients(r2.data); setProduits(r3.data) })
       .catch(() => setError('Erreur de chargement'))
       .finally(() => setLoading(false))
   }, [filterStatut])
@@ -41,6 +43,12 @@ export default function ContratsClients() {
   useEffect(() => { load() }, [load])
 
   const set = (f) => (e) => setForm(p => ({ ...p, [f]: e.target.value }))
+
+  const setProduit = (e) => {
+    const nom = e.target.value
+    const match = produits.find((p) => p.nom === nom)
+    setForm((p) => ({ ...p, produit: nom, prix_unitaire: !p.prix_unitaire && match ? match.prix_kg : p.prix_unitaire }))
+  }
 
   const openNew = () => { setEditing(null); setForm(INIT); setModalOpen(true) }
   const openEdit = (item) => {
@@ -132,7 +140,7 @@ export default function ContratsClients() {
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr>{['Client','Produit','Qté/mois','Prix unit.','CA mensuel','Début','Fin','Statut','Vendeur','Actions'].map(h => (
+              <tr>{['N° contrat','Client','Produit','Qté/mois','Prix unit.','CA mensuel','Début','Fin','Statut','Vendeur','Actions'].map(h => (
                 <th key={h} className="table-header whitespace-nowrap">{h}</th>
               ))}</tr>
             </thead>
@@ -141,6 +149,7 @@ export default function ContratsClients() {
                 const caMensuel = Number(item.quantite_mensuelle || 0) * Number(item.prix_unitaire || 0)
                 return (
                   <tr key={item.id} className={`hover:bg-gray-50 ${item.statut === 'Terminé' ? 'opacity-50' : ''}`}>
+                    <td className="table-cell font-mono text-xs text-gray-500">{item.numero || '-'}</td>
                     <td className="table-cell font-medium">{item.client_nom}</td>
                     <td className="table-cell text-sm">{item.produit}</td>
                     <td className="table-cell text-right">{item.quantite_mensuelle ? Number(item.quantite_mensuelle).toLocaleString('fr-FR') + ' kg' : '-'}</td>
@@ -177,7 +186,10 @@ export default function ContratsClients() {
           </div>
           <div>
             <label className="label">Produit *</label>
-            <input className="input" placeholder="Ex: Riz brisé 25%" value={form.produit} onChange={set('produit')} required />
+            <input className="input" list="produits-list" placeholder="Ex: Riz brisé 25%" value={form.produit} onChange={setProduit} required />
+            <datalist id="produits-list">
+              {produits.map((p) => <option key={p.id} value={p.nom} />)}
+            </datalist>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

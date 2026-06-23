@@ -20,6 +20,9 @@ import Emplois from './pages/Emplois'
 import Managers from './pages/Managers'
 import Journal from './pages/Journal'
 import Activites from './pages/Activites'
+import Produits from './pages/Produits'
+import Encaissements from './pages/Encaissements'
+import Guide from './pages/Guide'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminUserDetail from './pages/admin/AdminUserDetail'
 import AdminAudit from './pages/admin/AdminAudit'
@@ -80,6 +83,9 @@ function AppRoutes() {
         <Route path="managers"   element={<RizierRoute><Managers /></RizierRoute>} />
         <Route path="journal"    element={<Journal />} />
         <Route path="activites"  element={<Activites />} />
+        <Route path="produits"   element={<Produits />} />
+        <Route path="encaissements" element={<Encaissements />} />
+        <Route path="guide"      element={<Guide />} />
 
         {/* Redirects anciens liens (anciens onglets groupés) */}
         <Route path="crm" element={<Navigate to="/clients" replace />} />

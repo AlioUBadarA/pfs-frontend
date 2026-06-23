@@ -35,7 +35,7 @@ export default function AdminDashboard() {
   const [saving, setSaving]     = useState(false)
 
   // Formulaires
-  const RIZERIE_INIT = { nom: '', pays: '', region: '', ville: '', telephone: '' }
+  const RIZERIE_INIT = { nom: '', pays: '', region: '', ville: '', telephone: '', emplois_baseline: '', masse_salariale_baseline: '', ca_baseline: '' }
   const COMPTE_INIT  = { nom: '', email: '', password: '', rizerie_id: '', telephone: '', ville: '' }
   const SUPPORT_INIT = { nom: '', email: '', password: '' }
   const [rForm, setRForm] = useState(RIZERIE_INIT)
@@ -69,7 +69,12 @@ export default function AdminDashboard() {
     e.preventDefault()
     setSaving(true)
     try {
-      await api.post('/api/admin/rizeries', rForm)
+      await api.post('/api/admin/rizeries', {
+        ...rForm,
+        emplois_baseline: Number(rForm.emplois_baseline) || 0,
+        masse_salariale_baseline: Number(rForm.masse_salariale_baseline) || 0,
+        ca_baseline: Number(rForm.ca_baseline) || 0,
+      })
       load(); setModal(null); setRForm(RIZERIE_INIT)
     } catch (err) { setError(err.response?.data?.error || 'Erreur création') }
     finally { setSaving(false) }
@@ -189,12 +194,15 @@ export default function AdminDashboard() {
             <div className="card p-0 overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr>{['Rizerie', 'Pays', 'Ville / Région', 'Téléphone', 'Comptes', 'CA total', 'Actions'].map(h => (
+                  <tr>{['Rizerie', 'Pays', 'Ville / Région', 'Téléphone', 'Comptes', 'CA total', 'Emplois', 'Évolution CA', 'Actions'].map(h => (
                     <th key={h} className="table-header whitespace-nowrap">{h}</th>
                   ))}</tr>
                 </thead>
                 <tbody>
-                  {rizeries.map(r => (
+                  {rizeries.map(r => {
+                    const emploisDelta = Number(r.emplois_actuels || 0) - Number(r.emplois_baseline || 0)
+                    const caDelta = Number(r.ca_total || 0) - Number(r.ca_baseline || 0)
+                    return (
                     <tr key={r.id} className="hover:bg-gray-50">
                       <td className="table-cell font-semibold text-gray-900">{r.nom}</td>
                       <td className="table-cell text-sm text-gray-600 whitespace-nowrap">{fmtPays(r.pays) || '-'}</td>
@@ -202,10 +210,19 @@ export default function AdminDashboard() {
                       <td className="table-cell text-sm">{r.telephone || '-'}</td>
                       <td className="table-cell text-center font-medium">{r.nb_comptes}</td>
                       <td className="table-cell text-right font-semibold text-[#1b75bc]">{fmt(r.ca_total)}</td>
+                      <td className="table-cell text-center whitespace-nowrap">
+                        {r.emplois_actuels} <span className={emploisDelta >= 0 ? 'text-green-600' : 'text-red-600'}>({emploisDelta >= 0 ? '+' : ''}{emploisDelta})</span>
+                      </td>
+                      <td className="table-cell text-right whitespace-nowrap font-medium" style={{ color: caDelta >= 0 ? '#1B5E20' : '#CC0000' }}>
+                        {caDelta >= 0 ? '+' : ''}{fmt(caDelta)}
+                      </td>
                       <td className="table-cell">
                         <div className="flex gap-2 whitespace-nowrap">
                           <button
-                            onClick={() => { setRForm({ nom: r.nom, pays: r.pays || '', region: r.region || '', ville: r.ville || '', telephone: r.telephone || '' }); setError(''); setModal({ type: 'edit-rizerie', id: r.id }) }}
+                            onClick={() => { setRForm({
+                              nom: r.nom, pays: r.pays || '', region: r.region || '', ville: r.ville || '', telephone: r.telephone || '',
+                              emplois_baseline: r.emplois_baseline || '', masse_salariale_baseline: r.masse_salariale_baseline || '', ca_baseline: r.ca_baseline || '',
+                            }); setError(''); setModal({ type: 'edit-rizerie', id: r.id }) }}
                             className="text-xs text-blue-600 font-medium hover:underline"
                           >
                             Modifier
@@ -219,7 +236,7 @@ export default function AdminDashboard() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>
@@ -369,6 +386,7 @@ export default function AdminDashboard() {
               value={rForm.telephone}
               onChange={(v) => setRForm((p) => ({ ...p, telephone: v }))}
             />
+            <BaselineFields rForm={rForm} setR={setR} />
             <div className="flex gap-3 pt-2">
               <button type="button" className="btn-secondary flex-1" onClick={() => setModal(null)}>Annuler</button>
               <button type="submit" disabled={saving} className="btn-primary flex-1 flex items-center justify-center gap-2">
@@ -385,7 +403,15 @@ export default function AdminDashboard() {
         <ModalWrap title="Modifier la rizerie" onClose={() => setModal(null)} error={error}>
           <form onSubmit={async (e) => {
             e.preventDefault(); setSaving(true)
-            try { await api.put(`/api/admin/rizeries/${modal.id}`, rForm); load(); setModal(null) }
+            try {
+              await api.put(`/api/admin/rizeries/${modal.id}`, {
+                ...rForm,
+                emplois_baseline: Number(rForm.emplois_baseline) || 0,
+                masse_salariale_baseline: Number(rForm.masse_salariale_baseline) || 0,
+                ca_baseline: Number(rForm.ca_baseline) || 0,
+              })
+              load(); setModal(null)
+            }
             catch (err) { setError(err.response?.data?.error || 'Erreur') }
             finally { setSaving(false) }
           }} className="space-y-3">
@@ -402,6 +428,7 @@ export default function AdminDashboard() {
               value={rForm.telephone}
               onChange={(v) => setRForm((p) => ({ ...p, telephone: v }))}
             />
+            <BaselineFields rForm={rForm} setR={setR} />
             <div className="flex gap-3 pt-2">
               <button type="button" className="btn-secondary flex-1" onClick={() => setModal(null)}>Annuler</button>
               <button type="submit" disabled={saving} className="btn-primary flex-1">
@@ -509,6 +536,30 @@ export default function AdminDashboard() {
           </div>
         </ModalWrap>
       )}
+    </div>
+  )
+}
+
+function BaselineFields({ rForm, setR }) {
+  return (
+    <div className="border-t border-gray-100 pt-3">
+      <p className="text-xs text-gray-500 mb-2">
+        Photo de départ : nombre d'emplois, masse salariale et CA actuels de la rizerie, pour suivre la création d'emplois et l'évolution du CA dans le temps.
+      </p>
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="label">Emplois actuels</label>
+          <input type="number" min="0" className="input" value={rForm.emplois_baseline} onChange={setR('emplois_baseline')} />
+        </div>
+        <div>
+          <label className="label">Masse salariale (F/mois)</label>
+          <input type="number" min="0" className="input" value={rForm.masse_salariale_baseline} onChange={setR('masse_salariale_baseline')} />
+        </div>
+        <div>
+          <label className="label">CA actuel (F)</label>
+          <input type="number" min="0" className="input" value={rForm.ca_baseline} onChange={setR('ca_baseline')} />
+        </div>
+      </div>
     </div>
   )
 }

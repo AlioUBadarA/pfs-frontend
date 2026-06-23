@@ -25,21 +25,24 @@ export default function AdminAudit() {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
   const [offset, setOffset]   = useState(0)
-  const [filterAction, setFilterAction] = useState('')
+  const [filterDate, setFilterDate] = useState(new Date().toISOString().slice(0, 10))
   const LIMIT = 50
 
   const load = useCallback(() => {
     setLoading(true)
     const params = { limit: LIMIT, offset }
-    if (filterAction) params.action = filterAction
+    if (filterDate) params.date = filterDate
     api.get('/api/admin/audit', { params })
       .then((r) => { setLogs(r.data.logs); setTotal(r.data.total) })
       .catch(() => setError('Erreur de chargement'))
       .finally(() => setLoading(false))
-  }, [offset, filterAction])
+  }, [offset, filterDate])
 
   useEffect(() => { load() }, [load])
-  useEffect(() => { setOffset(0) }, [filterAction])
+  useEffect(() => { setOffset(0) }, [filterDate])
+
+  const today = new Date().toISOString().slice(0, 10)
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
 
   return (
     <div className="space-y-5">
@@ -53,24 +56,33 @@ export default function AdminAudit() {
 
       {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
 
-      {/* Filtre action */}
+      {/* Filtre par jour */}
       <div className="card flex flex-wrap items-center gap-2">
-        <span className="text-sm text-gray-600 font-medium">Filtrer :</span>
+        <span className="text-sm text-gray-600 font-medium">Filtrer par jour :</span>
+        <input
+          type="date"
+          className="input w-auto"
+          value={filterDate}
+          onChange={(e) => setFilterDate(e.target.value)}
+        />
         <button
-          onClick={() => setFilterAction('')}
-          className={`px-3 py-1 rounded-full text-xs font-medium ${!filterAction ? 'bg-[#1b75bc] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          onClick={() => setFilterDate(today)}
+          className={`px-3 py-1 rounded-full text-xs font-medium ${filterDate === today ? 'bg-[#1b75bc] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
         >
-          Tous
+          Aujourd'hui
         </button>
-        {Object.entries(ACTION_LABELS).map(([k, v]) => (
-          <button
-            key={k}
-            onClick={() => setFilterAction(k)}
-            className={`px-3 py-1 rounded-full text-xs font-medium ${filterAction === k ? 'bg-[#1b75bc] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-          >
-            {v.label}
-          </button>
-        ))}
+        <button
+          onClick={() => setFilterDate(yesterday)}
+          className={`px-3 py-1 rounded-full text-xs font-medium ${filterDate === yesterday ? 'bg-[#1b75bc] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+        >
+          Hier
+        </button>
+        <button
+          onClick={() => setFilterDate('')}
+          className={`px-3 py-1 rounded-full text-xs font-medium ${!filterDate ? 'bg-[#1b75bc] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+        >
+          Tous les jours
+        </button>
       </div>
 
       {/* Tableau */}

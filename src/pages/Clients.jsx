@@ -12,7 +12,7 @@ const STATUTS_CLIENT = ['Actif', 'Prospect', 'Dormant']
 
 const CLIENT_INIT = {
   nom: '', type: 'Boutique', statut: 'Prospect', zone: '', region: '', segment: '', potentiel_annuel: '',
-  telephone: '', volume_estime: '', valorise: '', horaire: '',
+  telephone: '', volume_estime: '', valorise: '', horaire: '', produits_interet: [],
 }
 
 const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '-'
@@ -37,6 +37,7 @@ const SEG_COLOR = { Champion: '#1B5E20', Fidèle: '#1b75bc', 'À développer': '
 
 export default function Clients() {
   const [clients, setClients] = useState([])
+  const [produits, setProduits] = useState([])
   const [loading, setLoading] = useState(true)
   const [sortKey, setSortKey] = useState('caTotal')
   const [modalOpen, setModalOpen] = useState(false)
@@ -44,6 +45,8 @@ export default function Clients() {
   const [form, setForm] = useState(CLIENT_INIT)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => { api.get('/api/produits').then((r) => setProduits(r.data)).catch(() => {}) }, [])
 
   const load = useCallback(() => {
     setLoading(true)
@@ -84,6 +87,7 @@ export default function Clients() {
       nom: c.nom || '', type: c.type || 'Boutique', statut: c.statut || 'Prospect',
       zone: c.zone || '', region: c.region || '', segment: c.segment || '', potentiel_annuel: c.potentiel_annuel || '',
       telephone: c.telephone || '', volume_estime: c.volume_estime || '', valorise: c.valorise || '', horaire: c.horaire || '',
+      produits_interet: c.produits_interet || [],
     })
     setError('')
     setModalOpen(true)
@@ -119,6 +123,15 @@ export default function Clients() {
   }
 
   const set = (f) => (e) => setForm({ ...form, [f]: e.target.value })
+
+  const toggleProduit = (nom) => {
+    setForm((p) => ({
+      ...p,
+      produits_interet: p.produits_interet.includes(nom)
+        ? p.produits_interet.filter((n) => n !== nom)
+        : [...p.produits_interet, nom],
+    }))
+  }
 
   const nbCl = clients.length || 1
   const nbActifs = clients.filter((c) => c.statut === 'Actif').length
@@ -275,6 +288,27 @@ export default function Clients() {
             <label className="label">Horaire de visite</label>
             <input className="input" placeholder="Lundi 9h–11h" value={form.horaire} onChange={set('horaire')} />
           </div>
+          {produits.length > 0 && (
+            <div>
+              <label className="label">Produits suivis</label>
+              <div className="flex flex-wrap gap-2">
+                {produits.map((p) => (
+                  <button
+                    type="button"
+                    key={p.id}
+                    onClick={() => toggleProduit(p.nom)}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                      form.produits_interet.includes(p.nom)
+                        ? 'bg-[#1b75bc] text-white border-[#1b75bc]'
+                        : 'bg-white text-gray-600 border-gray-300 hover:border-[#1b75bc]'
+                    }`}
+                  >
+                    {p.nom}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-3 pt-2">
             <button type="button" className="btn-secondary flex-1" onClick={() => setModalOpen(false)}>Annuler</button>

@@ -2,16 +2,22 @@ import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import pfsIcon from '../assets/pfs-icon.png'
 
-// Reprend exactement navConfig() du HTML de référence "Cockpit Commercial".
 const GROUPS_USER = [
   { title: 'Pilotage', items: [
     { to: '/', label: 'Direction', end: true },
     { to: '/managers', label: 'Managers' },
     { to: '/equipe', label: 'Commerciaux' },
+    { to: '/emplois', label: 'Emplois' },
   ] },
-  { title: 'Clients', items: [
+  { title: 'Clients & Ventes', items: [
     { to: '/clients', label: 'Portefeuille' },
-    { to: '/prospection', label: 'Pipeline' },
+    { to: '/prospection', label: 'Prospection' },
+    { to: '/pilotage', label: 'Planning semaine' },
+    { to: '/ventes', label: 'Ventes' },
+    { to: '/contrats-clients', label: 'Contrats clients' },
+    { to: '/contrats-paddy', label: 'Contrats paddy' },
+    { to: '/produits', label: 'Produits' },
+    { to: '/encaissements', label: 'Encaissements' },
     { to: '/creances', label: 'Recouvrement' },
   ] },
   { title: 'Analyse', items: [
@@ -25,12 +31,8 @@ const GROUPS_USER = [
     { to: '/insights', label: 'Analyses & Actions' },
   ] },
   { title: 'Référentiel', items: [
-    { to: '/ventes', label: 'Ventes' },
-    { to: '/pilotage', label: 'Planning semaine' },
-    { to: '/contrats-clients', label: 'Contrats clients' },
-    { to: '/contrats-paddy', label: 'Contrats paddy' },
-    { to: '/emplois', label: 'Emplois' },
     { to: '/argumentaire', label: 'Argumentaire de vente' },
+    { to: '/guide', label: "Guide d'utilisation" },
   ] },
 ]
 
