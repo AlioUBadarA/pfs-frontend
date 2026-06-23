@@ -463,7 +463,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <label className="label">Mot de passe provisoire *</label>
-              <input type="text" className="input" value={cForm.password} onChange={setC('password')} required minLength={6} placeholder="Min. 6 caractères" />
+              <input type="text" className="input" value={cForm.password} onChange={setC('password')} required minLength={12} placeholder="Min. 12 caractères" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <PhoneField
@@ -498,7 +498,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <label className="label">Mot de passe provisoire *</label>
-              <input type="text" className="input" value={sForm.password} onChange={setS('password')} required minLength={6} placeholder="Min. 6 caractères" />
+              <input type="text" className="input" value={sForm.password} onChange={setS('password')} required minLength={12} placeholder="Min. 12 caractères" />
             </div>
             <p className="text-xs text-gray-400">Ce compte aura les mêmes accès admin que vous, à l'exception de la gestion des comptes support.</p>
             <div className="flex gap-3 pt-2">

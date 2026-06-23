@@ -221,7 +221,7 @@ export default function Equipe() {
           </div>
           <div>
             <label className="label">Mot de passe provisoire *</label>
-            <input type="text" className="input" value={cForm.password} onChange={setC('password')} required minLength={6} placeholder="Min. 6 caractères" />
+            <input type="text" className="input" value={cForm.password} onChange={setC('password')} required minLength={12} placeholder="Min. 12 caractères" />
           </div>
           <div>
             <label className="label">Téléphone</label>
@@ -267,7 +267,7 @@ export default function Equipe() {
         <form onSubmit={handlePwd} className="space-y-4">
           <div>
             <label className="label">Nouveau mot de passe *</label>
-            <input type="password" className="input" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} required minLength={6} />
+            <input type="password" className="input" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} required minLength={12} />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-3 pt-2">
