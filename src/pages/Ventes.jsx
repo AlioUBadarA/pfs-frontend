@@ -18,7 +18,7 @@ const VENTE_INIT = {
 }
 
 export default function Ventes() {
-  const { user } = useAuth()
+  const { user, isVendeur } = useAuth()
   const [ventes, setVentes]     = useState([])
   const [produits, setProduits] = useState([])
   const [loading, setLoading]   = useState(true)
@@ -106,7 +106,7 @@ export default function Ventes() {
   const ventеMenuItems = (v) => [
     { icon: '⎙', label: 'Bon de commande', onClick: () => printBonCommande(v, user) },
     ...(v.statut_paiement === 'Paye' ? [{ icon: '🧾', label: 'Facture', onClick: () => handlePrintFacture(v) }] : []),
-    { icon: '🗑', label: 'Supprimer', onClick: () => deleteVente(v.id), danger: true },
+    ...(!isVendeur ? [{ icon: '🗑', label: 'Supprimer', onClick: () => deleteVente(v.id), danger: true }] : []),
   ]
 
   const set = (f) => (e) => setForm({ ...form, [f]: e.target.value })

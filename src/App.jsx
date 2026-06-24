@@ -52,12 +52,12 @@ function AdminRoute({ children }) {
   return children
 }
 
-// Accessible au rizier et au manager (pas au vendeur ni à l'admin)
-function RizierRoute({ children }) {
+// Accessible au manager, directeur, rizier — pas au vendeur ni à l'admin
+function ManagerRoute({ children }) {
   const { user, isAdmin, isVendeur } = useAuth()
   if (!user) return <Navigate to="/login" replace />
   if (isAdmin) return <Navigate to="/admin" replace />
-  if (isVendeur) return <Navigate to="/" replace />
+  if (isVendeur) return <Navigate to="/journal" replace />
   return children
 }
 
@@ -81,9 +81,9 @@ function AppRoutes() {
         <Route path="insights"    element={<Insights />} />
         <Route path="contrats-clients" element={<ContratsClients />} />
         <Route path="contrats-paddy"   element={<ContratsPaddy />} />
-        <Route path="equipe"     element={<RizierRoute><Equipe /></RizierRoute>} />
-        <Route path="emplois"    element={<RizierRoute><Emplois /></RizierRoute>} />
-        <Route path="managers"   element={<RizierRoute><Managers /></RizierRoute>} />
+        <Route path="equipe"     element={<ManagerRoute><Equipe /></ManagerRoute>} />
+        <Route path="emplois"    element={<ManagerRoute><Emplois /></ManagerRoute>} />
+        <Route path="managers"   element={<ManagerRoute><Managers /></ManagerRoute>} />
         <Route path="journal"    element={<Journal />} />
         <Route path="activites"  element={<Activites />} />
         <Route path="produits"   element={<Produits />} />
