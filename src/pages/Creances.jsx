@@ -40,20 +40,16 @@ export default function Creances() {
     Promise.all([
       api.get('/api/ventes', { params: { statut: 'En cours' } }),
       api.get('/api/ventes', { params: { statut: 'En retard' } }),
-      api.get('/api/ventes', { params: { statut: 'Paye' } }),
+      api.get('/api/encaissements/mois'),
     ])
-      .then(([enCours, enRetard, paye]) => {
+      .then(([enCours, enRetard, payeMoisR]) => {
         const parseList = (r) => Array.isArray(r.data) ? r.data : []
         const listEnCours  = parseList(enCours)
         const listEnRetard = parseList(enRetard)
-        const listPaye     = parseList(paye)
 
         const somme = (arr) => arr.reduce((s, v) => s + Number(v.montant || 0), 0)
 
         const now = new Date()
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        const payeMois = listPaye.filter((v) => new Date(v.date_vente) >= startOfMonth)
-
         const enAttente = [...listEnRetard, ...listEnCours].map((v) => {
           const echeance = v.date_echeance ? new Date(v.date_echeance) : new Date(new Date(v.date_vente).getTime() + 30 * 86400000)
           const age = Math.round((now - echeance) / 86400000)
@@ -65,7 +61,7 @@ export default function Creances() {
           kpis: {
             en_retard: somme(listEnRetard),
             en_cours:  somme(listEnCours),
-            paye_mois: somme(payeMois),
+            paye_mois: payeMoisR.data.total,
             nb_retard: listEnRetard.length,
             nb_cours:  listEnCours.length,
           },
