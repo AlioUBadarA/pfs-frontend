@@ -570,7 +570,7 @@ export default function AdminDashboard() {
             <>
               {/* KPI Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                <MetricCard title="CA généré via plateforme" value={fmt(performance.global.ca_app)} sub={`${performance.global.nb_ventes} ventes enregistrées`} color="#1b75bc" />
+                <MetricCard title="CA généré via Cockpit" value={fmt(performance.global.ca_app)} sub={`${performance.global.nb_ventes} ventes enregistrées`} color="#1b75bc" />
                 <MetricCard title="CA avant RIZAO" value={fmt(performance.global.ca_baseline_total)} sub="Référence de départ des rizeries" color="#9e9e9e" />
                 <MetricCard
                   title="Taux de recouvrement"
