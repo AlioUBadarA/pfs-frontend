@@ -419,7 +419,16 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Liste des comptes */}
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse" style={{ tableLayout: 'fixed' }}>
+                      <colgroup>
+                        <col style={{ width: '28%' }} />
+                        <col style={{ width: '9%' }} />
+                        <col style={{ width: '16%' }} />
+                        <col style={{ width: '8%' }} />
+                        <col style={{ width: '14%' }} />
+                        <col style={{ width: '13%' }} />
+                        <col style={{ width: '6%' }} />
+                      </colgroup>
                       <thead>
                         <tr>{['Compte', 'Rôle', 'CA total', 'Ventes', 'Dernière vente', 'Statut', 'Actions'].map(h => (
                           <th key={h} className="table-header whitespace-nowrap text-xs">{h}</th>
@@ -428,9 +437,9 @@ export default function AdminDashboard() {
                       <tbody>
                         {comptes.map(u => (
                           <tr key={u.id} className={`hover:bg-gray-50 ${u.suspended ? 'bg-red-50' : ''}`}>
-                            <td className="table-cell" style={{ borderLeft: `3px solid ${color}30` }}>
-                              <div className="font-semibold text-gray-900 text-sm">{u.nom}</div>
-                              <div className="text-xs text-gray-400">{u.email}</div>
+                            <td className="table-cell overflow-hidden" style={{ borderLeft: `3px solid ${color}30` }}>
+                              <div className="font-semibold text-gray-900 text-sm truncate">{u.nom}</div>
+                              <div className="text-xs text-gray-400 truncate">{u.email}</div>
                             </td>
                             <td className="table-cell">
                               <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600 capitalize">
