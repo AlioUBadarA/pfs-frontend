@@ -50,6 +50,8 @@ export default function AdminDashboard() {
   const [saForm, setSaForm] = useState(SUPERADMIN_INIT)
   const [eForm, setEForm]   = useState(EXPORT_INIT)
   const [suspendReason, setSuspendReason] = useState('')
+  const [actionMenu, setActionMenu] = useState(null)
+  const toggleMenu = (key) => setActionMenu(prev => prev === key ? null : key)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -310,29 +312,16 @@ export default function AdminDashboard() {
                         {caDelta >= 0 ? '+' : ''}{fmt(caDelta)}
                       </td>
                       <td className="table-cell">
-                        <div className="flex gap-2 whitespace-nowrap">
-                          <button
-                            onClick={() => { setFilterRizerie(r.nom); setTab('comptes') }}
-                            className="text-xs text-[#62bb46] font-medium hover:underline"
-                          >
-                            Comptes →
-                          </button>
-                          <button
-                            onClick={() => { setRForm({
-                              nom: r.nom, pays: r.pays || '', region: r.region || '', ville: r.ville || '', telephone: r.telephone || '',
-                              emplois_baseline: r.emplois_baseline || '', masse_salariale_baseline: r.masse_salariale_baseline || '', ca_baseline: r.ca_baseline || '',
-                            }); setError(''); setModal({ type: 'edit-rizerie', id: r.id }) }}
-                            className="text-xs text-blue-600 font-medium hover:underline"
-                          >
-                            Modifier
-                          </button>
-                          <button
-                            onClick={() => handleDeleteRizerie(r)}
-                            className="text-xs text-red-600 font-medium hover:underline"
-                          >
-                            Supprimer
-                          </button>
-                        </div>
+                        <KebabMenu
+                          menuKey={`riz-${r.id}`}
+                          open={actionMenu === `riz-${r.id}`}
+                          onToggle={toggleMenu}
+                          items={[
+                            { label: 'Voir les comptes', icon: '👥', onClick: () => { setFilterRizerie(r.nom); setTab('comptes') } },
+                            { label: 'Modifier', icon: '✏️', onClick: () => { setRForm({ nom: r.nom, pays: r.pays || '', region: r.region || '', ville: r.ville || '', telephone: r.telephone || '', emplois_baseline: r.emplois_baseline || '', masse_salariale_baseline: r.masse_salariale_baseline || '', ca_baseline: r.ca_baseline || '' }); setError(''); setModal({ type: 'edit-rizerie', id: r.id }) } },
+                            { label: 'Supprimer', icon: '🗑', danger: true, onClick: () => handleDeleteRizerie(r) },
+                          ]}
+                        />
                       </td>
                     </tr>
                   )})}
@@ -446,21 +435,18 @@ export default function AdminDashboard() {
                               }
                             </td>
                             <td className="table-cell">
-                              <div className="flex items-center gap-2 whitespace-nowrap">
-                                {!u.suspended && (
-                                  <button onClick={() => handleImpersonate(u)}
-                                    className="text-xs bg-[#1b75bc] text-white px-2 py-1 rounded font-medium hover:bg-[#62bb46]">
-                                    👁 Accéder
-                                  </button>
-                                )}
-                                <Link to={`/admin/users/${u.id}`} className="text-xs text-[#1b75bc] font-medium hover:underline">
-                                  Détails
-                                </Link>
-                                {u.suspended
-                                  ? <button onClick={() => doSuspend(u.id, false, '')} className="text-xs text-green-700 font-medium hover:underline">Réactiver</button>
-                                  : <button onClick={() => { setModal({ type: 'suspend', user: u }); setSuspendReason(''); setError('') }} className="text-xs text-red-600 font-medium hover:underline">Suspendre</button>
-                                }
-                              </div>
+                              <KebabMenu
+                                menuKey={`usr-${u.id}`}
+                                open={actionMenu === `usr-${u.id}`}
+                                onToggle={toggleMenu}
+                                items={[
+                                  !u.suspended && { label: 'Accéder', icon: '👁', onClick: () => handleImpersonate(u) },
+                                  { label: 'Détails', icon: '📋', onClick: () => navigate(`/admin/users/${u.id}`) },
+                                  u.suspended
+                                    ? { label: 'Réactiver', icon: '✅', onClick: () => doSuspend(u.id, false, '') }
+                                    : { label: 'Suspendre', icon: '🚫', danger: true, onClick: () => { setModal({ type: 'suspend', user: u }); setSuspendReason(''); setError('') } },
+                                ].filter(Boolean)}
+                              />
                             </td>
                           </tr>
                         ))}
@@ -502,11 +488,15 @@ export default function AdminDashboard() {
                       <td className="table-cell text-sm text-gray-600">{s.email}</td>
                       <td className="table-cell text-xs text-gray-500 whitespace-nowrap">{fmtDate(s.created_at)}</td>
                       <td className="table-cell">
-                        <div className="flex gap-3">
-                          <button onClick={() => { setSForm({ nom: s.nom, email: s.email, password: '' }); setError(''); setModal({ type: 'edit-support', id: s.id }) }}
-                            className="text-xs text-blue-600 font-medium hover:underline">Modifier</button>
-                          <button onClick={() => handleDeleteSupport(s)} className="text-xs text-red-600 font-medium hover:underline">Supprimer</button>
-                        </div>
+                        <KebabMenu
+                          menuKey={`sup-${s.id}`}
+                          open={actionMenu === `sup-${s.id}`}
+                          onToggle={toggleMenu}
+                          items={[
+                            { label: 'Modifier', icon: '✏️', onClick: () => { setSForm({ nom: s.nom, email: s.email, password: '' }); setError(''); setModal({ type: 'edit-support', id: s.id }) } },
+                            { label: 'Supprimer', icon: '🗑', danger: true, onClick: () => handleDeleteSupport(s) },
+                          ]}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -545,11 +535,15 @@ export default function AdminDashboard() {
                       <td className="table-cell text-sm text-gray-600">{s.email}</td>
                       <td className="table-cell text-xs text-gray-500 whitespace-nowrap">{fmtDate(s.created_at)}</td>
                       <td className="table-cell">
-                        <div className="flex gap-3">
-                          <button onClick={() => { setSaForm({ nom: s.nom, email: s.email, password: '' }); setError(''); setModal({ type: 'edit-superadmin', id: s.id }) }}
-                            className="text-xs text-blue-600 font-medium hover:underline">Modifier</button>
-                          <button onClick={() => handleDeleteSuperadmin(s)} className="text-xs text-red-600 font-medium hover:underline">Supprimer</button>
-                        </div>
+                        <KebabMenu
+                          menuKey={`sa-${s.id}`}
+                          open={actionMenu === `sa-${s.id}`}
+                          onToggle={toggleMenu}
+                          items={[
+                            { label: 'Modifier', icon: '✏️', onClick: () => { setSaForm({ nom: s.nom, email: s.email, password: '' }); setError(''); setModal({ type: 'edit-superadmin', id: s.id }) } },
+                            { label: 'Supprimer', icon: '🗑', danger: true, onClick: () => handleDeleteSuperadmin(s) },
+                          ]}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -849,6 +843,37 @@ export default function AdminDashboard() {
             </button>
           </div>
         </ModalWrap>
+      )}
+    </div>
+  )
+}
+
+function KebabMenu({ menuKey, open, onToggle, items }) {
+  return (
+    <div className="relative flex justify-center">
+      <button
+        onClick={() => onToggle(menuKey)}
+        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 text-lg font-bold leading-none"
+        title="Actions"
+      >
+        ⋮
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => onToggle(null)} />
+          <div className="absolute right-0 top-9 z-50 bg-white border border-gray-200 rounded-xl shadow-xl py-1.5 w-44 min-w-max">
+            {items.map((item, i) => (
+              <button
+                key={i}
+                onClick={() => { onToggle(null); item.onClick() }}
+                className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2.5 hover:bg-gray-50 transition-colors ${item.danger ? 'text-red-600 hover:bg-red-50' : 'text-gray-700'}`}
+              >
+                {item.icon && <span className="text-sm w-4 text-center">{item.icon}</span>}
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )
