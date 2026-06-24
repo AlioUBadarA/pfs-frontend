@@ -32,8 +32,9 @@ export default function AdminDashboard() {
   const [superadmins, setSuperadmins] = useState([])
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState('')
-  const [search, setSearch]     = useState('')
-  const [filter, setFilter]     = useState('tous')
+  const [search, setSearch]       = useState('')
+  const [filter, setFilter]       = useState('tous')
+  const [filterRizerie, setFilterRizerie] = useState('')
   const [modal, setModal]       = useState(null)
   const [saving, setSaving]     = useState(false)
 
@@ -211,8 +212,23 @@ export default function AdminDashboard() {
     const q = search.toLowerCase()
     const matchSearch = !q || u.nom?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.rizerie?.toLowerCase().includes(q)
     const matchFilter = filter === 'tous' ? true : filter === 'suspendus' ? u.suspended : !u.suspended
-    return matchSearch && matchFilter
+    const matchRizerie = !filterRizerie || (u.rizerie_nom || u.rizerie) === filterRizerie
+    return matchSearch && matchFilter && matchRizerie
   })
+
+  // Grouper par rizerie pour l'affichage
+  const usersByRizerie = filteredUsers.reduce((acc, u) => {
+    const key = u.rizerie_nom || u.rizerie || '__aucune__'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(u)
+    return acc
+  }, {})
+
+  const RIZERIE_COLORS = ['#1b75bc', '#62bb46', '#F9A825', '#9C27B0', '#00897B', '#E64A19', '#5C6BC0']
+  const rizerieColorMap = rizeries.reduce((acc, r, i) => {
+    acc[r.nom] = RIZERIE_COLORS[i % RIZERIE_COLORS.length]
+    return acc
+  }, {})
 
   return (
     <div className="space-y-5">
@@ -296,6 +312,12 @@ export default function AdminDashboard() {
                       <td className="table-cell">
                         <div className="flex gap-2 whitespace-nowrap">
                           <button
+                            onClick={() => { setFilterRizerie(r.nom); setTab('comptes') }}
+                            className="text-xs text-[#62bb46] font-medium hover:underline"
+                          >
+                            Comptes →
+                          </button>
+                          <button
                             onClick={() => { setRForm({
                               nom: r.nom, pays: r.pays || '', region: r.region || '', ville: r.ville || '', telephone: r.telephone || '',
                               emplois_baseline: r.emplois_baseline || '', masse_salariale_baseline: r.masse_salariale_baseline || '', ca_baseline: r.ca_baseline || '',
@@ -326,11 +348,19 @@ export default function AdminDashboard() {
         <div className="space-y-4">
           <div className="card flex flex-wrap items-center gap-3">
             <input
-              className="input flex-1 min-w-[200px]"
-              placeholder="Rechercher par nom, email, rizerie..."
+              className="input flex-1 min-w-[180px]"
+              placeholder="Rechercher par nom, email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            <select
+              className="input w-auto"
+              value={filterRizerie}
+              onChange={(e) => setFilterRizerie(e.target.value)}
+            >
+              <option value="">Toutes les rizeries</option>
+              {rizeries.map(r => <option key={r.id} value={r.nom}>{r.nom}</option>)}
+            </select>
             <div className="flex gap-1">
               {[['tous','Tous'], ['actifs','Actifs'], ['suspendus','Suspendus']].map(([v, l]) => (
                 <button key={v} onClick={() => setFilter(v)}
@@ -339,69 +369,108 @@ export default function AdminDashboard() {
                 </button>
               ))}
             </div>
-            <button onClick={() => { setCForm(COMPTE_INIT); setError(''); setModal({ type: 'create-compte' }) }} className="btn-primary text-sm">
+            {(search || filterRizerie || filter !== 'tous') && (
+              <button className="text-xs text-gray-400 hover:text-gray-600 underline" onClick={() => { setSearch(''); setFilterRizerie(''); setFilter('tous') }}>
+                Réinitialiser
+              </button>
+            )}
+            <button onClick={() => { setCForm(COMPTE_INIT); setError(''); setModal({ type: 'create-compte' }) }} className="btn-primary text-sm ml-auto">
               + Créer un compte
             </button>
           </div>
 
-          <div className="card p-0 overflow-x-auto">
-            {loading ? (
-              <div className="flex justify-center py-10">
-                <span className="w-7 h-7 border-4 border-[#62bb46] border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : filteredUsers.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-10">Aucun compte trouvé</p>
-            ) : (
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr>{['Compte', 'Rizerie', 'CA total', 'Ventes', 'Dernière vente', 'Statut', 'Actions'].map(h => (
-                    <th key={h} className="table-header whitespace-nowrap">{h}</th>
-                  ))}</tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map(u => (
-                    <tr key={u.id} className={`hover:bg-gray-50 ${u.suspended ? 'bg-red-50' : ''}`}>
-                      <td className="table-cell">
-                        <div className="font-semibold text-gray-900">{u.nom}</div>
-                        <div className="text-xs text-gray-400">{u.email}</div>
-                      </td>
-                      <td className="table-cell text-sm text-gray-600">
-                        {u.rizerie_nom || u.rizerie || <span className="text-gray-300 italic">non rattaché</span>}
-                      </td>
-                      <td className="table-cell text-right font-medium text-[#1b75bc]">{fmt(u.ca_total)}</td>
-                      <td className="table-cell text-center">{u.nb_ventes}</td>
-                      <td className="table-cell text-xs text-gray-500 whitespace-nowrap">
-                        {u.derniere_vente ? fmtDate(u.derniere_vente) : <span className="text-gray-300">jamais</span>}
-                      </td>
-                      <td className="table-cell">
-                        {u.suspended
-                          ? <span className="text-xs font-medium text-red-600">🚫 Suspendu</span>
-                          : <span className="text-xs font-medium text-green-600">✅ Actif</span>
-                        }
-                      </td>
-                      <td className="table-cell">
-                        <div className="flex items-center gap-2 whitespace-nowrap flex-wrap">
-                          {!u.suspended && (
-                            <button onClick={() => handleImpersonate(u)}
-                              className="text-xs bg-[#1b75bc] text-white px-2 py-1 rounded font-medium hover:bg-[#62bb46]">
-                              👁 Accéder
-                            </button>
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <span className="w-7 h-7 border-4 border-[#62bb46] border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-10">Aucun compte trouvé</p>
+          ) : (
+            <div className="space-y-4">
+              {Object.entries(usersByRizerie).map(([rizerieName, comptes]) => {
+                const color = rizerieColorMap[rizerieName] || '#888'
+                const rizerieInfo = rizeries.find(r => r.nom === rizerieName)
+                return (
+                  <div key={rizerieName} className="card p-0 overflow-hidden">
+                    {/* En-tête de la rizerie */}
+                    <div
+                      className="flex items-center justify-between px-4 py-3"
+                      style={{ borderLeft: `4px solid ${color}`, background: `${color}10` }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-base font-bold" style={{ color }}>🏭</span>
+                        <div>
+                          <span className="font-bold text-sm text-gray-900">
+                            {rizerieName === '__aucune__' ? <span className="italic text-gray-400">Sans rizerie</span> : rizerieName}
+                          </span>
+                          {rizerieInfo && (
+                            <span className="text-xs text-gray-500 ml-2">
+                              {[fmtPays(rizerieInfo.pays), rizerieInfo.ville].filter(Boolean).join(' — ')}
+                            </span>
                           )}
-                          <Link to={`/admin/users/${u.id}`} className="text-xs text-[#1b75bc] font-medium hover:underline">
-                            Détails
-                          </Link>
-                          {u.suspended
-                            ? <button onClick={() => doSuspend(u.id, false, '')} className="text-xs text-green-700 font-medium hover:underline">Réactiver</button>
-                            : <button onClick={() => { setModal({ type: 'suspend', user: u }); setSuspendReason(''); setError('') }} className="text-xs text-red-600 font-medium hover:underline">Suspendre</button>
-                          }
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+                      </div>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: `${color}20`, color }}>
+                        {comptes.length} compte{comptes.length > 1 ? 's' : ''}
+                      </span>
+                    </div>
+
+                    {/* Liste des comptes */}
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr>{['Compte', 'Rôle', 'CA total', 'Ventes', 'Dernière vente', 'Statut', 'Actions'].map(h => (
+                          <th key={h} className="table-header whitespace-nowrap text-xs">{h}</th>
+                        ))}</tr>
+                      </thead>
+                      <tbody>
+                        {comptes.map(u => (
+                          <tr key={u.id} className={`hover:bg-gray-50 ${u.suspended ? 'bg-red-50' : ''}`}>
+                            <td className="table-cell" style={{ borderLeft: `3px solid ${color}30` }}>
+                              <div className="font-semibold text-gray-900 text-sm">{u.nom}</div>
+                              <div className="text-xs text-gray-400">{u.email}</div>
+                            </td>
+                            <td className="table-cell">
+                              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600 capitalize">
+                                {u.role || 'rizier'}
+                              </span>
+                            </td>
+                            <td className="table-cell text-right font-medium text-[#1b75bc] text-sm">{fmt(u.ca_total)}</td>
+                            <td className="table-cell text-center text-sm">{u.nb_ventes}</td>
+                            <td className="table-cell text-xs text-gray-500 whitespace-nowrap">
+                              {u.derniere_vente ? fmtDate(u.derniere_vente) : <span className="text-gray-300">jamais</span>}
+                            </td>
+                            <td className="table-cell">
+                              {u.suspended
+                                ? <span className="text-xs font-medium text-red-600">🚫 Suspendu</span>
+                                : <span className="text-xs font-medium text-green-600">✅ Actif</span>
+                              }
+                            </td>
+                            <td className="table-cell">
+                              <div className="flex items-center gap-2 whitespace-nowrap">
+                                {!u.suspended && (
+                                  <button onClick={() => handleImpersonate(u)}
+                                    className="text-xs bg-[#1b75bc] text-white px-2 py-1 rounded font-medium hover:bg-[#62bb46]">
+                                    👁 Accéder
+                                  </button>
+                                )}
+                                <Link to={`/admin/users/${u.id}`} className="text-xs text-[#1b75bc] font-medium hover:underline">
+                                  Détails
+                                </Link>
+                                {u.suspended
+                                  ? <button onClick={() => doSuspend(u.id, false, '')} className="text-xs text-green-700 font-medium hover:underline">Réactiver</button>
+                                  : <button onClick={() => { setModal({ type: 'suspend', user: u }); setSuspendReason(''); setError('') }} className="text-xs text-red-600 font-medium hover:underline">Suspendre</button>
+                                }
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 
