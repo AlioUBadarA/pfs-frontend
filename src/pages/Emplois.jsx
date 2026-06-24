@@ -14,7 +14,12 @@ const typeColor = (t) => ({
   'Journalier':   'bg-gray-100 text-gray-700',
 }[t] || 'bg-gray-100 text-gray-600')
 
-const INIT = { nom: '', poste: '', type_contrat: 'CDI', date_embauche: '', salaire: '', telephone: '', note: '' }
+const PERIODES = ['Avec RIZAO', 'Avant RIZAO']
+const periodeColor = (p) => p === 'Avant RIZAO'
+  ? 'bg-gray-100 text-gray-600'
+  : 'bg-green-100 text-green-700'
+
+const INIT = { nom: '', poste: '', type_contrat: 'CDI', date_embauche: '', salaire: '', telephone: '', note: '', periode_rizao: 'Avec RIZAO' }
 
 export default function Emplois() {
   const [items, setItems]     = useState([])
@@ -41,13 +46,14 @@ export default function Emplois() {
   const openEdit = (item) => {
     setEditing(item)
     setForm({
-      nom:          item.nom,
-      poste:        item.poste || '',
-      type_contrat: item.type_contrat || 'CDI',
+      nom:           item.nom,
+      poste:         item.poste || '',
+      type_contrat:  item.type_contrat || 'CDI',
       date_embauche: item.date_embauche ? item.date_embauche.slice(0,10) : '',
-      salaire:      item.salaire || '',
-      telephone:    item.telephone || '',
-      note:         item.note || '',
+      salaire:       item.salaire || '',
+      telephone:     item.telephone || '',
+      note:          item.note || '',
+      periode_rizao: item.periode_rizao || 'Avec RIZAO',
     })
     setModalOpen(true)
   }
@@ -115,7 +121,7 @@ export default function Emplois() {
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr>{['Nom','Poste','Contrat','Embauche','Salaire/mois','Téléphone','Actions'].map(h => (
+              <tr>{['Nom','Poste','Contrat','Période RIZAO','Embauche','Salaire/mois','Téléphone','Actions'].map(h => (
                 <th key={h} className="table-header whitespace-nowrap">{h}</th>
               ))}</tr>
             </thead>
@@ -127,6 +133,11 @@ export default function Emplois() {
                   <td className="table-cell">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${typeColor(item.type_contrat)}`}>
                       {item.type_contrat}
+                    </span>
+                  </td>
+                  <td className="table-cell">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${periodeColor(item.periode_rizao)}`}>
+                      {item.periode_rizao || 'Avec RIZAO'}
                     </span>
                   </td>
                   <td className="table-cell whitespace-nowrap text-sm">{fmtDate(item.date_embauche)}</td>
@@ -150,6 +161,13 @@ export default function Emplois() {
           <div>
             <label className="label">Nom complet *</label>
             <input className="input" value={form.nom} onChange={set('nom')} required />
+          </div>
+          <div>
+            <label className="label">Période RIZAO</label>
+            <select className="input" value={form.periode_rizao} onChange={set('periode_rizao')}>
+              <option value="Avec RIZAO">Avec le programme RIZAO</option>
+              <option value="Avant RIZAO">Avant RIZAO</option>
+            </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
