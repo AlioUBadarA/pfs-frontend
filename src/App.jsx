@@ -26,6 +26,7 @@ import Guide from './pages/Guide'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminUserDetail from './pages/admin/AdminUserDetail'
 import AdminAudit from './pages/admin/AdminAudit'
+import AdminImpactRizao from './pages/admin/AdminImpactRizao'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
@@ -91,9 +92,10 @@ function AppRoutes() {
         <Route path="crm" element={<Navigate to="/clients" replace />} />
 
         {/* Admin */}
-        <Route path="admin"           element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-        <Route path="admin/users/:id" element={<AdminRoute><AdminUserDetail /></AdminRoute>} />
-        <Route path="admin/audit"     element={<AdminRoute><AdminAudit /></AdminRoute>} />
+        <Route path="admin"                element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="admin/impact-rizao"   element={<AdminRoute><AdminImpactRizao /></AdminRoute>} />
+        <Route path="admin/users/:id"      element={<AdminRoute><AdminUserDetail /></AdminRoute>} />
+        <Route path="admin/audit"          element={<AdminRoute><AdminAudit /></AdminRoute>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -43,6 +43,7 @@ const GROUPS_VENDEUR = GROUPS_USER.map((g) =>
 
 const GROUPS_ADMIN = [
   { title: 'Administration', items: [
+    { to: '/admin/impact-rizao', label: 'Impact RIZAO' },
     { to: '/admin', label: 'Comptes', end: true },
     { to: '/admin/audit', label: "Journal d'audit" },
   ] },

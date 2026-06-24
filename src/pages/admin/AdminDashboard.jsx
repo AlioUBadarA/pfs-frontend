@@ -1,6 +1,5 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
-import { createPortal } from 'react-dom'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { useEffect, useState, useCallback } from 'react'
+import KebabMenu from '../../components/KebabMenu'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import KpiCard from '../../components/KpiCard'
@@ -18,7 +17,6 @@ const fmtPays = (iso) => iso ? (Country.getCountryByCode(iso)?.flag || '') + ' '
 const BASE_TABS = [
   { key: 'rizeries', label: 'Rizeries' },
   { key: 'comptes',  label: 'Comptes' },
-  { key: 'impact',   label: 'Impact RIZAO' },
 ]
 
 export default function AdminDashboard() {
@@ -55,20 +53,17 @@ export default function AdminDashboard() {
   const [suspendReason, setSuspendReason] = useState('')
   const [actionMenu, setActionMenu] = useState(null)
   const toggleMenu = (key) => setActionMenu(prev => prev === key ? null : key)
-  const [performance, setPerformance] = useState(null)
-
   const load = useCallback(() => {
     setLoading(true)
     const calls = [
       api.get('/api/admin/stats'),
       api.get('/api/admin/rizeries'),
       api.get('/api/admin/users'),
-      api.get('/api/admin/performance'),
     ]
     if (isSuperadmin) calls.push(api.get('/api/admin/support'), api.get('/api/admin/superadmins'))
     Promise.all(calls)
-      .then(([s, r, u, perf, sup, sa]) => {
-        setStats(s.data); setRizeries(r.data); setUsers(u.data); setPerformance(perf.data)
+      .then(([s, r, u, sup, sa]) => {
+        setStats(s.data); setRizeries(r.data); setUsers(u.data)
         if (sup) setSupport(sup.data)
         if (sa) setSuperadmins(sa.data)
       })
@@ -573,131 +568,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ── ONGLET IMPACT RIZAO ── */}
-      {tab === 'impact' && (
-        <div className="space-y-5">
-          {!performance ? (
-            <div className="flex justify-center py-10">
-              <span className="w-7 h-7 border-4 border-[#62bb46] border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : (
-            <>
-              {/* KPI Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                <MetricCard title="CA généré via Cockpit" value={fmt(performance.global.ca_app)} sub={`${performance.global.nb_ventes} ventes enregistrées`} color="#1b75bc" />
-                <MetricCard title="CA avant RIZAO" value={fmt(performance.global.ca_baseline_total)} sub="Référence de départ des rizeries" color="#9e9e9e" />
-                <MetricCard
-                  title="Taux de recouvrement"
-                  value={`${performance.global.taux_recouvrement}%`}
-                  sub={`${performance.global.nb_paye} soldées · ${performance.global.nb_retard} en retard`}
-                  color={performance.global.taux_recouvrement >= 80 ? '#62bb46' : performance.global.taux_recouvrement >= 50 ? '#F9A825' : '#E64A19'}
-                />
-                <MetricCard
-                  title="Emplois grâce à RIZAO"
-                  value={performance.global.emplois_app.toLocaleString('fr-FR')}
-                  sub="Emplois enregistrés via le Cockpit"
-                  color="#62bb46"
-                />
-                <MetricCard title="Clients servis" value={performance.global.nb_clients.toLocaleString('fr-FR')} sub="Clients uniques sur toutes les ventes" color="#9C27B0" />
-                <MetricCard title="Contrats actifs" value={performance.global.contrats_actifs.toLocaleString('fr-FR')} sub="Engagements commerciaux récurrents" color="#00897B" />
-              </div>
-
-              {/* Statut des paiements */}
-              <div className="card">
-                <h3 className="font-semibold text-gray-900 text-sm mb-3">Statut des paiements</h3>
-                <div className="flex gap-6 flex-wrap mb-3">
-                  {[
-                    { label: 'Soldées', n: performance.global.nb_paye, color: '#62bb46' },
-                    { label: 'En cours', n: performance.global.nb_en_cours, color: '#F9A825' },
-                    { label: 'En retard', n: performance.global.nb_retard, color: '#E64A19' },
-                  ].map(({ label, n, color }) => {
-                    const pct = performance.global.nb_ventes > 0 ? Math.round(n / performance.global.nb_ventes * 100) : 0
-                    return (
-                      <div key={label} className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: color }} />
-                        <span className="text-sm text-gray-600">{label}</span>
-                        <span className="text-sm font-bold" style={{ color }}>{n} ({pct}%)</span>
-                      </div>
-                    )
-                  })}
-                </div>
-                {performance.global.nb_ventes > 0 && (
-                  <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden flex">
-                    <div style={{ width: `${Math.round(performance.global.nb_paye / performance.global.nb_ventes * 100)}%`, background: '#62bb46' }} />
-                    <div style={{ width: `${Math.round(performance.global.nb_en_cours / performance.global.nb_ventes * 100)}%`, background: '#F9A825' }} />
-                    <div style={{ width: `${Math.round(performance.global.nb_retard / performance.global.nb_ventes * 100)}%`, background: '#E64A19' }} />
-                  </div>
-                )}
-              </div>
-
-              {/* Graphique CA mensuel */}
-              <div className="card">
-                <h3 className="font-semibold text-gray-900 mb-4">Évolution du CA mensuel (12 derniers mois)</h3>
-                <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={fillMonths(performance.mensuel)} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#6b7280' }} />
-                    <YAxis tickFormatter={fmtYAxis} tick={{ fontSize: 10, fill: '#6b7280' }} width={58} />
-                    <Tooltip
-                      formatter={(v) => [Number(v).toLocaleString('fr-FR') + ' F', 'CA']}
-                      contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
-                    />
-                    <Line type="monotone" dataKey="ca" stroke="#1b75bc" strokeWidth={2.5}
-                      dot={{ fill: '#1b75bc', r: 3 }} activeDot={{ r: 5 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Tableau performance par rizerie */}
-              <div className="card p-0 overflow-x-auto">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <h3 className="font-semibold text-gray-900">Performance par rizerie</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">Comparatif avant / après adoption de la plateforme</p>
-                </div>
-                {performance.parRizerie.length === 0 ? (
-                  <p className="text-sm text-gray-400 text-center py-8">Aucune rizerie enregistrée</p>
-                ) : (
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr>{['Rizerie', 'CA avant', 'CA plateforme', 'Évol. CA', 'Emplois avant', '+ via app', 'Total emplois', 'Clients', 'Recouvrement'].map(h => (
-                        <th key={h} className="table-header whitespace-nowrap text-xs">{h}</th>
-                      ))}</tr>
-                    </thead>
-                    <tbody>
-                      {performance.parRizerie.map(r => {
-                        const caPct = r.ca_baseline > 0 ? Math.round(r.ca_app / r.ca_baseline * 100) : null
-                        const color = rizerieColorMap[r.nom] || '#888'
-                        return (
-                          <tr key={r.id} className="hover:bg-gray-50">
-                            <td className="table-cell font-semibold text-gray-900" style={{ borderLeft: `3px solid ${color}` }}>{r.nom}</td>
-                            <td className="table-cell text-right text-sm text-gray-500">{fmt(r.ca_baseline)}</td>
-                            <td className="table-cell text-right font-medium text-[#1b75bc]">{fmt(r.ca_app)}</td>
-                            <td className="table-cell text-center whitespace-nowrap">
-                              {caPct !== null
-                                ? <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${caPct >= 100 ? 'bg-green-100 text-green-700' : caPct >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>+{caPct}%</span>
-                                : <span className="text-gray-300 text-xs">—</span>
-                              }
-                            </td>
-                            <td className="table-cell text-center text-gray-500">{r.emplois_baseline}</td>
-                            <td className="table-cell text-center font-medium" style={{ color: '#62bb46' }}>+{r.emplois_app}</td>
-                            <td className="table-cell text-center font-bold">{r.emplois_total}</td>
-                            <td className="table-cell text-center">{r.nb_clients}</td>
-                            <td className="table-cell text-right">
-                              <span className={`text-xs font-bold ${r.taux_recouvrement >= 80 ? 'text-green-600' : r.taux_recouvrement >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
-                                {r.taux_recouvrement}%
-                              </span>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-      )}
 
       {/* Modal : créer une rizerie */}
       {modal?.type === 'create-rizerie' && (
@@ -993,80 +863,6 @@ export default function AdminDashboard() {
   )
 }
 
-function fillMonths(data, n = 12) {
-  const now = new Date()
-  return Array.from({ length: n }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const label = d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
-    const found = data.find(r => r.mois === key)
-    return { label, ca: found ? found.ca : 0 }
-  })
-}
-
-const fmtYAxis = (n) => {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace('.0', '') + 'M'
-  if (n >= 1_000) return (n / 1_000).toFixed(0) + 'k'
-  return n.toString()
-}
-
-function MetricCard({ title, value, sub, color }) {
-  return (
-    <div className="card">
-      <p className="text-xs text-gray-500 mb-1">{title}</p>
-      <p className="text-xl font-bold" style={{ color }}>{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
-    </div>
-  )
-}
-
-function KebabMenu({ menuKey, open, onToggle, items }) {
-  const btnRef = useRef(null)
-  const [pos, setPos] = useState({ top: 0, right: 0 })
-
-  useEffect(() => {
-    if (open && btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect()
-      const menuH = items.length * 44 + 12
-      const openAbove = r.bottom + menuH > window.innerHeight
-      setPos(openAbove
-        ? { bottom: window.innerHeight - r.top + 4, right: window.innerWidth - r.right }
-        : { top: r.bottom + 4, right: window.innerWidth - r.right }
-      )
-    }
-  }, [open, items.length])
-
-  return (
-    <div className="flex justify-center">
-      <button
-        ref={btnRef}
-        onClick={() => onToggle(menuKey)}
-        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 text-lg font-bold leading-none"
-        title="Actions"
-      >
-        ⋮
-      </button>
-      {open && createPortal(
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => onToggle(null)} />
-          <div className="fixed z-50 bg-white border border-gray-200 rounded-xl shadow-xl py-1.5 w-44" style={pos}>
-            {items.map((item, i) => (
-              <button
-                key={i}
-                onClick={() => { onToggle(null); item.onClick() }}
-                className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2.5 hover:bg-gray-50 transition-colors ${item.danger ? 'text-red-600 hover:bg-red-50' : 'text-gray-700'}`}
-              >
-                {item.icon && <span className="text-sm w-4 text-center">{item.icon}</span>}
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </>,
-        document.body
-      )}
-    </div>
-  )
-}
 
 function BaselineFields({ rForm, setR }) {
   return (
