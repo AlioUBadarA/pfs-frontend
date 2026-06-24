@@ -861,7 +861,7 @@ function KebabMenu({ menuKey, open, onToggle, items }) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => onToggle(null)} />
-          <div className="absolute right-0 top-9 z-50 bg-white border border-gray-200 rounded-xl shadow-xl py-1.5 w-44 min-w-max">
+          <div className="absolute right-0 bottom-8 z-50 bg-white border border-gray-200 rounded-xl shadow-xl py-1.5 w-44 min-w-max">
             {items.map((item, i) => (
               <button
                 key={i}
