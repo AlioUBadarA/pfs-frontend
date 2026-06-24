@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from 'react'
 import api from '../services/api'
 import Modal from '../components/Modal'
 import StatutBadge from '../components/StatutBadge'
+import { useAuth } from '../context/AuthContext'
+import { printBonCommande, printFacture } from '../utils/printDocument'
 
 // Valeurs exactes du backend
 const STATUTS_DB   = ['En cours', 'Paye', 'En retard']
@@ -16,6 +18,7 @@ const VENTE_INIT = {
 }
 
 export default function Ventes() {
+  const { user } = useAuth()
   const [ventes, setVentes]     = useState([])
   const [produits, setProduits] = useState([])
   const [loading, setLoading]   = useState(true)
@@ -25,6 +28,7 @@ export default function Ventes() {
   const [form, setForm]           = useState(VENTE_INIT)
   const [saving, setSaving]       = useState(false)
   const [error, setError]         = useState('')
+  const [printMenu, setPrintMenu] = useState(null) // id de la vente dont le menu est ouvert
 
   const load = useCallback(() => {
     setLoading(true)
@@ -87,6 +91,16 @@ export default function Ventes() {
       setVentes((prev) => prev.filter((v) => v.id !== id))
     } catch {
       setError('Erreur suppression')
+    }
+  }
+
+  const handlePrintFacture = async (vente) => {
+    setPrintMenu(null)
+    try {
+      const { data: versements } = await api.get(`/api/ventes/${vente.id}/versements`)
+      printFacture(vente, versements, user)
+    } catch {
+      printFacture(vente, [], user)
     }
   }
 
@@ -178,10 +192,40 @@ export default function Ventes() {
                     </div>
                   </td>
                   <td className="table-cell">
-                    <button onClick={() => deleteVente(v.id)}
-                      className="text-xs text-red-600 hover:text-red-800 font-medium">
-                      Supprimer
-                    </button>
+                    <div className="flex items-center gap-2 whitespace-nowrap">
+                      {/* Menu impression */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setPrintMenu(printMenu === v.id ? null : v.id)}
+                          className="text-xs text-[#1b75bc] hover:text-blue-800 font-medium flex items-center gap-0.5"
+                        >
+                          ⎙ Imprimer
+                        </button>
+                        {printMenu === v.id && (
+                          <>
+                            <div className="fixed inset-0 z-40" onClick={() => setPrintMenu(null)} />
+                            <div className="absolute right-0 top-6 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[160px]">
+                              <button
+                                onClick={() => { setPrintMenu(null); printBonCommande(v, user) }}
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
+                              >
+                                Bon de commande
+                              </button>
+                              <button
+                                onClick={() => handlePrintFacture(v)}
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
+                              >
+                                Facture
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <button onClick={() => deleteVente(v.id)}
+                        className="text-xs text-red-600 hover:text-red-800 font-medium">
+                        Supprimer
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

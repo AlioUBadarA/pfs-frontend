@@ -3,6 +3,8 @@ import api from '../services/api'
 import Panel from '../components/Panel'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
+import { useAuth } from '../context/AuthContext'
+import { printRecu } from '../utils/printDocument'
 
 const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '-'
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '-'
@@ -14,6 +16,7 @@ const statutColor = (s) => ({
 }[s] || 'text-gray-600')
 
 export default function Encaissements() {
+  const { user } = useAuth()
   const [q, setQ] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
@@ -70,11 +73,16 @@ export default function Encaissements() {
       const { data: fresh } = await api.get(`/api/encaissements/${selected.type}/${selected.id}/versements`)
       setVersements(fresh)
       const totalVerse = fresh.reduce((s, v) => s + Number(v.montant), 0)
+      const montantTotal = Number(selected.montant_total)
+      const resteAdu = Math.max(0, montantTotal - totalVerse)
       setSelected((p) => ({
         ...p, total_verse: totalVerse,
-        statut: p.type === 'vente' && totalVerse >= Number(p.montant_total) ? 'Paye' : p.statut,
+        statut: p.type === 'vente' && totalVerse >= montantTotal ? 'Paye' : p.statut,
       }))
       setResults((rs) => rs.map((r) => r.id === selected.id ? { ...r, total_verse: totalVerse } : r))
+      // Impression automatique du reçu
+      const versement = { montant: Number(form.montant), mode: form.mode, date: form.date }
+      printRecu(selected, versement, totalVerse, resteAdu, user)
     } catch (err) {
       setError(err.response?.data?.error || 'Erreur lors de l\'enregistrement')
     } finally { setSaving(false) }
@@ -152,12 +160,42 @@ export default function Encaissements() {
 
           {loadingVers ? (
             <div className="flex justify-center py-8"><span className="w-6 h-6 border-4 border-[#62bb46] border-t-transparent rounded-full animate-spin" /></div>
+          ) : versements.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-8">Aucun versement enregistré.</p>
           ) : (
-            <DataTable
-              headers={['Date', 'Montant', 'Mode']}
-              align={['left', 'right', 'left']}
-              rows={versements.map((v) => [fmtDate(v.date), fmt(v.montant), v.mode || '-'])}
-            />
+            <div className="overflow-x-auto -m-1">
+              <table className="w-full border-collapse p-1">
+                <thead>
+                  <tr>
+                    {['Date', 'Montant', 'Mode', ''].map((h) => (
+                      <th key={h} className="table-header">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {versements.map((v, i) => {
+                    // total cumulé jusqu'à ce versement (liste en DESC)
+                    const cumulVerse = versements.slice(i).reduce((s, x) => s + Number(x.montant), 0)
+                    const resteAuMoment = Math.max(0, Number(selected.montant_total) - cumulVerse)
+                    return (
+                      <tr key={v.id || i} className="hover:bg-gray-50">
+                        <td className="table-cell">{fmtDate(v.date)}</td>
+                        <td className="table-cell text-right font-semibold">{fmt(v.montant)}</td>
+                        <td className="table-cell">{v.mode || '-'}</td>
+                        <td className="table-cell">
+                          <button
+                            onClick={() => printRecu(selected, v, cumulVerse, resteAuMoment, user)}
+                            className="text-xs text-[#1b75bc] hover:text-blue-800 font-medium whitespace-nowrap"
+                          >
+                            ⎙ Reçu
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </Panel>
       )}
