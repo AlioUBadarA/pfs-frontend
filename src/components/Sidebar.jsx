@@ -36,10 +36,8 @@ const GROUPS_USER = [
   ] },
 ]
 
-// Un vendeur n'a ni équipe ni managers à piloter : on retire ces deux items.
-const GROUPS_VENDEUR = GROUPS_USER.map((g) =>
-  g.title === 'Pilotage' ? { ...g, items: g.items.filter((it) => it.to === '/') } : g
-)
+// Un vendeur n'accède pas au pilotage global (vue Direction réservée aux managers/riziers).
+const GROUPS_VENDEUR = GROUPS_USER.filter((g) => g.title !== 'Pilotage')
 
 const GROUPS_ADMIN = [
   { title: 'Administration', items: [

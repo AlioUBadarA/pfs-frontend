@@ -39,8 +39,10 @@ function PublicRoute({ children }) {
 }
 
 function RootRedirect() {
-  const { isAdmin } = useAuth()
-  return isAdmin ? <Navigate to="/admin" replace /> : <Dashboard />
+  const { isAdmin, isVendeur } = useAuth()
+  if (isAdmin)   return <Navigate to="/admin"   replace />
+  if (isVendeur) return <Navigate to="/journal" replace />
+  return <Dashboard />
 }
 
 function AdminRoute({ children }) {
