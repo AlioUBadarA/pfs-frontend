@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import api from '../services/api'
 import Modal from '../components/Modal'
-import StatutBadge from '../components/StatutBadge'
+import KebabMenu from '../components/KebabMenu'
 import { useAuth } from '../context/AuthContext'
 import { printBonCommande, printFacture } from '../utils/printDocument'
 
@@ -28,7 +28,7 @@ export default function Ventes() {
   const [form, setForm]           = useState(VENTE_INIT)
   const [saving, setSaving]       = useState(false)
   const [error, setError]         = useState('')
-  const [printMenu, setPrintMenu] = useState(null) // id de la vente dont le menu est ouvert
+  const [openMenu, setOpenMenu] = useState(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -95,7 +95,6 @@ export default function Ventes() {
   }
 
   const handlePrintFacture = async (vente) => {
-    setPrintMenu(null)
     try {
       const { data: versements } = await api.get(`/api/ventes/${vente.id}/versements`)
       printFacture(vente, versements, user)
@@ -103,6 +102,12 @@ export default function Ventes() {
       printFacture(vente, [], user)
     }
   }
+
+  const ventеMenuItems = (v) => [
+    { icon: '⎙', label: 'Bon de commande', onClick: () => printBonCommande(v, user) },
+    ...(v.statut_paiement === 'Paye' ? [{ icon: '🧾', label: 'Facture', onClick: () => handlePrintFacture(v) }] : []),
+    { icon: '🗑', label: 'Supprimer', onClick: () => deleteVente(v.id), danger: true },
+  ]
 
   const set = (f) => (e) => setForm({ ...form, [f]: e.target.value })
 
@@ -192,45 +197,12 @@ export default function Ventes() {
                     </div>
                   </td>
                   <td className="table-cell">
-                    <div className="flex items-center gap-2 whitespace-nowrap">
-                      {/* Menu impression */}
-                      <div className="relative">
-                        <button
-                          onClick={() => setPrintMenu(printMenu === v.id ? null : v.id)}
-                          className="text-xs text-[#1b75bc] hover:text-blue-800 font-medium"
-                        >
-                          ⎙ Imprimer
-                        </button>
-                        {printMenu === v.id && (
-                          <>
-                            <div className="fixed inset-0 z-40" onClick={() => setPrintMenu(null)} />
-                            <div className="absolute right-0 top-7 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1 w-48">
-                              <button
-                                onClick={() => { setPrintMenu(null); printBonCommande(v, user) }}
-                                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                              >
-                                Bon de commande
-                              </button>
-                              {v.statut_paiement === 'Paye' && (
-                                <>
-                                  <div className="border-t border-gray-100 mx-2" />
-                                  <button
-                                    onClick={() => handlePrintFacture(v)}
-                                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                                  >
-                                    Facture
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                      <button onClick={() => deleteVente(v.id)}
-                        className="text-xs text-red-600 hover:text-red-800 font-medium">
-                        Supprimer
-                      </button>
-                    </div>
+                    <KebabMenu
+                      menuKey={v.id}
+                      open={openMenu === v.id}
+                      onToggle={(k) => setOpenMenu(k)}
+                      items={ventеMenuItems(v)}
+                    />
                   </td>
                 </tr>
               ))}
