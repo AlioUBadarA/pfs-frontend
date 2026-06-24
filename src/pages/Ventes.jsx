@@ -211,12 +211,14 @@ export default function Ventes() {
                               >
                                 Bon de commande
                               </button>
-                              <button
-                                onClick={() => handlePrintFacture(v)}
-                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
-                              >
-                                Facture
-                              </button>
+                              {v.statut_paiement === 'Paye' && (
+                                <button
+                                  onClick={() => handlePrintFacture(v)}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
+                                >
+                                  Facture
+                                </button>
+                              )}
                             </div>
                           </>
                         )}

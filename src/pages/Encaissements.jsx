@@ -4,7 +4,7 @@ import Panel from '../components/Panel'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
 import { useAuth } from '../context/AuthContext'
-import { printRecu } from '../utils/printDocument'
+import { printRecu, printFacture } from '../utils/printDocument'
 
 const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '-'
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '-'
@@ -155,7 +155,20 @@ export default function Encaissements() {
           </div>
 
           <div className="flex justify-end mb-3">
-            <button onClick={openNewVersement} className="btn-primary text-sm">+ Enregistrer une tranche</button>
+            {reste <= 0 && selected.type === 'vente' ? (
+              <button
+                onClick={() => printFacture(
+                  { ...selected, montant: selected.montant_total, date_vente: selected.date },
+                  versements,
+                  user
+                )}
+                className="btn-primary text-sm"
+              >
+                ⎙ Imprimer la facture
+              </button>
+            ) : reste > 0 ? (
+              <button onClick={openNewVersement} className="btn-primary text-sm">+ Enregistrer une tranche</button>
+            ) : null}
           </div>
 
           {loadingVers ? (
