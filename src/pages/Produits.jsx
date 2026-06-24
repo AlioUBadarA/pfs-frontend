@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import api from '../services/api'
 import Modal from '../components/Modal'
+import KebabMenu from '../components/KebabMenu'
 import { useAuth } from '../context/AuthContext'
 
 const TENDANCES = ['hausse', 'stable', 'déclin']
@@ -23,6 +24,7 @@ export default function Produits() {
   const [editing, setEditing]     = useState(null)
   const [form, setForm]           = useState(INIT)
   const [saving, setSaving]       = useState(false)
+  const [openMenu, setOpenMenu]   = useState(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -128,10 +130,15 @@ export default function Produits() {
                   </td>
                   {!isVendeur && (
                     <td className="table-cell">
-                      <div className="flex gap-2">
-                        <button onClick={(e) => { e.stopPropagation(); openEdit(item) }} className="text-xs text-blue-600 hover:text-blue-800 font-medium">Éditer</button>
-                        <button onClick={(e) => { e.stopPropagation(); del(item.id) }} className="text-xs text-red-600 hover:text-red-800 font-medium">Suppr.</button>
-                      </div>
+                      <KebabMenu
+                        menuKey={item.id}
+                        open={openMenu === item.id}
+                        onToggle={(k) => setOpenMenu(k)}
+                        items={[
+                          { icon: '✏️', label: 'Éditer', onClick: () => openEdit(item) },
+                          { icon: '🗑', label: 'Supprimer', onClick: () => del(item.id), danger: true },
+                        ]}
+                      />
                     </td>
                   )}
                 </tr>

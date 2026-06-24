@@ -3,6 +3,7 @@ import api from '../services/api'
 import KpiCard from '../components/KpiCard'
 import Panel from '../components/Panel'
 import BarList from '../components/BarList'
+import KebabMenu from '../components/KebabMenu'
 
 const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '0 F'
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '-'
@@ -32,6 +33,7 @@ export default function Creances() {
   const [error, setError]     = useState('')
   const [updating, setUpdating] = useState(null)
   const [filterRisque, setFilterRisque] = useState('Tous')
+  const [openMenu, setOpenMenu] = useState(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -192,23 +194,15 @@ export default function Creances() {
                     {v.nb_relances > 0 ? `${v.nb_relances} · ${fmtDate(v.derniere_relance)}` : '-'}
                   </td>
                   <td className="table-cell">
-                    <div className="flex gap-1.5">
-                      <button
-                        onClick={() => relancer(v.id)}
-                        disabled={updating === v.id}
-                        className="text-xs btn-secondary py-1 px-2.5"
-                      >
-                        Relancer
-                      </button>
-                      <button
-                        onClick={() => marquerPaye(v.id)}
-                        disabled={updating === v.id}
-                        className="text-xs btn-primary py-1 px-2.5 flex items-center gap-1"
-                      >
-                        {updating === v.id && <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                        Payé
-                      </button>
-                    </div>
+                    <KebabMenu
+                      menuKey={v.id}
+                      open={openMenu === v.id}
+                      onToggle={(k) => setOpenMenu(k)}
+                      items={[
+                        { icon: '📣', label: 'Relancer le client', onClick: () => relancer(v.id) },
+                        { icon: '✅', label: 'Marquer payé', onClick: () => marquerPaye(v.id) },
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}

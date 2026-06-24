@@ -3,6 +3,7 @@ import api from '../services/api'
 import Panel from '../components/Panel'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
+import KebabMenu from '../components/KebabMenu'
 import { useAuth } from '../context/AuthContext'
 import { printRecu, printFacture } from '../utils/printDocument'
 
@@ -29,6 +30,7 @@ export default function Encaissements() {
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState({ montant: '', mode: 'Espèces', date: new Date().toISOString().slice(0, 10) })
   const [saving, setSaving] = useState(false)
+  const [openMenu, setOpenMenu] = useState(null)
 
   const search = async (e) => {
     e.preventDefault()
@@ -196,12 +198,14 @@ export default function Encaissements() {
                         <td className="table-cell text-right font-semibold">{fmt(v.montant)}</td>
                         <td className="table-cell">{v.mode || '-'}</td>
                         <td className="table-cell">
-                          <button
-                            onClick={() => printRecu(selected, v, cumulVerse, resteAuMoment, user)}
-                            className="text-xs text-[#1b75bc] hover:text-blue-800 font-medium whitespace-nowrap"
-                          >
-                            ⎙ Reçu
-                          </button>
+                          <KebabMenu
+                            menuKey={v.id ?? i}
+                            open={openMenu === (v.id ?? i)}
+                            onToggle={(k) => setOpenMenu(k)}
+                            items={[
+                              { icon: '⎙', label: 'Imprimer le reçu', onClick: () => printRecu(selected, v, cumulVerse, resteAuMoment, user) },
+                            ]}
+                          />
                         </td>
                       </tr>
                     )
