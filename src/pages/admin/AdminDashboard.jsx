@@ -579,9 +579,9 @@ export default function AdminDashboard() {
                   color={performance.global.taux_recouvrement >= 80 ? '#62bb46' : performance.global.taux_recouvrement >= 50 ? '#F9A825' : '#E64A19'}
                 />
                 <MetricCard
-                  title="Emplois totaux"
-                  value={performance.global.emplois_total.toLocaleString('fr-FR')}
-                  sub={`${performance.global.emplois_baseline_total} avant · +${performance.global.emplois_app} via app`}
+                  title="Emplois grâce à RIZAO"
+                  value={performance.global.emplois_app.toLocaleString('fr-FR')}
+                  sub="Emplois enregistrés via le Cockpit"
                   color="#62bb46"
                 />
                 <MetricCard title="Clients servis" value={performance.global.nb_clients.toLocaleString('fr-FR')} sub="Clients uniques sur toutes les ventes" color="#9C27B0" />
