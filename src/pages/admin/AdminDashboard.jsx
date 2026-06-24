@@ -430,9 +430,19 @@ export default function AdminDashboard() {
                         <col style={{ width: '6%' }} />
                       </colgroup>
                       <thead>
-                        <tr>{['Compte', 'Rôle', 'CA total', 'Ventes', 'Dernière vente', 'Statut', 'Actions'].map(h => (
-                          <th key={h} className="table-header whitespace-nowrap text-xs">{h}</th>
-                        ))}</tr>
+                        <tr>
+                          {[
+                            { label: 'Compte',         align: 'left'   },
+                            { label: 'Rôle',           align: 'left'   },
+                            { label: 'CA total',       align: 'right'  },
+                            { label: 'Ventes',         align: 'center' },
+                            { label: 'Dernière vente', align: 'left'   },
+                            { label: 'Statut',         align: 'left'   },
+                            { label: 'Actions',        align: 'center' },
+                          ].map(({ label, align }) => (
+                            <th key={label} className="table-header whitespace-nowrap text-xs" style={{ textAlign: align }}>{label}</th>
+                          ))}
+                        </tr>
                       </thead>
                       <tbody>
                         {comptes.map(u => (
