@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import PageTabs from '../components/PageTabs'
+import { useAuth } from '../context/AuthContext'
 
 const sectionsRizier = [
   {
@@ -47,6 +48,7 @@ const sectionsCommercial = [
   {
     titre: '1. Vos outils au quotidien',
     contenu: [
+      { q: 'Planning semaine', r: 'Dans "Planning semaine", organisez vos visites jour par jour : quel client ou prospect voir, avec quelle action à mener. C\'est votre feuille de route terrain.' },
       { q: 'Ventes', r: 'Enregistrez chaque vente : client, produit (sélectionné dans le catalogue), quantité et prix. Le client est automatiquement ajouté ou mis à jour dans le Portefeuille.' },
       { q: 'Prospection', r: 'Suivez vos prospects étape par étape (Nouveau → Qualifié → Proposition → Négociation → Gagné/Perdu) pour ne jamais perdre une opportunité de vue.' },
       { q: 'Activités', r: 'Notez chaque visite, appel ou relance — c\'est votre mémoire de terrain, utile pour préparer la prochaine visite.' },
@@ -68,10 +70,51 @@ const sectionsCommercial = [
   },
 ]
 
-export default function Guide() {
-  const [tab, setTab] = useState('rizier')
+function SectionList({ sections }) {
   const [open, setOpen] = useState(0)
-  const sections = tab === 'rizier' ? sectionsRizier : sectionsCommercial
+  return (
+    <div className="space-y-3">
+      {sections.map((section, idx) => (
+        <div key={idx} className="card p-0 overflow-hidden">
+          <button
+            className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+            onClick={() => setOpen(open === idx ? -1 : idx)}
+          >
+            <span className="font-semibold text-gray-800 text-sm">{section.titre}</span>
+            <span className={`text-gray-400 transition-transform duration-200 ${open === idx ? 'rotate-180' : ''}`}>▼</span>
+          </button>
+
+          {open === idx && (
+            <div className="border-t border-gray-100 divide-y divide-gray-50">
+              {section.contenu.map((item, i) => (
+                <div key={i} className="px-4 py-4">
+                  <p className="text-xs font-bold text-[#1b75bc] uppercase tracking-wide mb-2">{item.q}</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{item.r}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default function Guide() {
+  const { isVendeur } = useAuth()
+  const [tab, setTab] = useState('rizier')
+
+  if (isVendeur) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h2 className="font-display text-xl font-bold text-gray-900">Guide d'utilisation</h2>
+          <p className="text-sm text-gray-500 mt-1">Comment utiliser la plateforme au quotidien.</p>
+        </div>
+        <SectionList sections={sectionsCommercial} />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -83,33 +126,10 @@ export default function Guide() {
       <PageTabs
         tabs={[{ key: 'rizier', label: 'Pour le rizier' }, { key: 'commercial', label: 'Pour le commercial' }]}
         active={tab}
-        setActive={(t) => { setTab(t); setOpen(0) }}
+        setActive={(t) => setTab(t)}
       />
 
-      <div className="space-y-3">
-        {sections.map((section, idx) => (
-          <div key={idx} className="card p-0 overflow-hidden">
-            <button
-              className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
-              onClick={() => setOpen(open === idx ? -1 : idx)}
-            >
-              <span className="font-semibold text-gray-800 text-sm">{section.titre}</span>
-              <span className={`text-gray-400 transition-transform duration-200 ${open === idx ? 'rotate-180' : ''}`}>▼</span>
-            </button>
-
-            {open === idx && (
-              <div className="border-t border-gray-100 divide-y divide-gray-50">
-                {section.contenu.map((item, i) => (
-                  <div key={i} className="px-4 py-4">
-                    <p className="text-xs font-bold text-[#1b75bc] uppercase tracking-wide mb-2">{item.q}</p>
-                    <p className="text-sm text-gray-700 leading-relaxed">{item.r}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      <SectionList sections={tab === 'rizier' ? sectionsRizier : sectionsCommercial} />
     </div>
   )
 }

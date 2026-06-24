@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import KpiCard from '../../components/KpiCard'
 import StatutBadge from '../../components/StatutBadge'
+import RoleBadge from '../../components/RoleBadge'
 import { useAuth } from '../../context/AuthContext'
 
 const fmt = (n) => n != null ? Number(n).toLocaleString('fr-FR') + ' F' : '-'
@@ -232,7 +233,9 @@ export default function AdminUserDetail() {
             <tbody>
               {managers.map((m) => (
                 <tr key={m.id} className="hover:bg-gray-50">
-                  <td className="table-cell font-medium">{m.nom}</td>
+                  <td className="table-cell font-medium">
+                    <span className="flex items-center gap-1.5">{m.nom}<RoleBadge role="manager" /></span>
+                  </td>
                   <td className="table-cell text-xs text-gray-600">{m.email}</td>
                   <td className="table-cell text-xs">{m.zone || '-'}</td>
                   <td className="table-cell text-xs text-gray-500">{fmtDate(m.created_at)}</td>
@@ -271,7 +274,9 @@ export default function AdminUserDetail() {
             <tbody>
               {vendeurs.map(v => (
                 <tr key={v.id} className="hover:bg-gray-50">
-                  <td className="table-cell font-medium">{v.nom}</td>
+                  <td className="table-cell font-medium">
+                    <span className="flex items-center gap-1.5">{v.nom}<RoleBadge role="vendeur" /></span>
+                  </td>
                   <td className="table-cell text-xs text-gray-500">{v.manager_nom || '-'}</td>
                   <td className="table-cell text-xs text-gray-600">{v.email}</td>
                   <td className="table-cell text-xs">{v.telephone || '-'}</td>

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import KpiCard from '../../components/KpiCard'
 import StatutBadge from '../../components/StatutBadge'
+import RoleBadge from '../../components/RoleBadge'
 import PageTabs from '../../components/PageTabs'
 import LocationFields from '../../components/LocationFields'
 import PhoneField from '../../components/PhoneField'
@@ -452,9 +453,7 @@ export default function AdminDashboard() {
                               <div className="text-xs text-gray-400 truncate">{u.email}</div>
                             </td>
                             <td className="table-cell">
-                              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600 capitalize">
-                                {u.role || 'rizier'}
-                              </span>
+                              <RoleBadge role={u.role || 'rizier'} />
                             </td>
                             <td className="table-cell text-right font-medium text-[#1b75bc] text-sm">{fmt(u.ca_total)}</td>
                             <td className="table-cell text-center text-sm">{u.nb_ventes}</td>

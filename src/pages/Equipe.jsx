@@ -5,6 +5,7 @@ import Panel from '../components/Panel'
 import DataTable from '../components/DataTable'
 import KpiCard from '../components/KpiCard'
 import KebabMenu from '../components/KebabMenu'
+import RoleBadge from '../components/RoleBadge'
 import { useAuth } from '../context/AuthContext'
 
 const fmt = (n) => Number(n || 0).toLocaleString('fr-FR') + ' F'
@@ -179,12 +180,12 @@ export default function Equipe() {
   const vendeurActions = (v) => [
     { icon: '✏️', label: 'Éditer', onClick: () => openEdit(v) },
     { icon: '🔑', label: 'Mot de passe', onClick: () => { setPwdModal(v); setNewPwd(''); setError('') } },
-    ...(canAssign && managers.length > 0 ? [{
+    ...(canAssign && managers.length > 0 && v.role === 'vendeur' ? [{
       icon: '👥',
       label: v.manager_nom ? 'Réassigner manager' : 'Assigner un manager',
       onClick: () => openAssign(v),
     }] : []),
-    ...(canPromote ? [{ icon: '⭐', label: 'Promouvoir manager', onClick: () => handlePromote(v) }] : []),
+    ...(canPromote && v.role === 'vendeur' ? [{ icon: '⭐', label: 'Promouvoir manager', onClick: () => handlePromote(v) }] : []),
     { icon: '🗑️', label: 'Supprimer', danger: true, onClick: () => deleteUser(v.id) },
   ]
 
@@ -197,8 +198,8 @@ export default function Equipe() {
 
   const makeRow = (v, isMgr = false) => [
     isMgr
-      ? { v: <span className="font-semibold text-blue-900">{v.nom}</span>, sub: v.zone ? `Zone ${v.zone}` : 'Manager' }
-      : { v: v.nom, sub: v.email },
+      ? { v: <span className="flex items-center gap-1.5"><span className="font-semibold text-blue-900">{v.nom}</span><RoleBadge role={v.role} /></span>, sub: v.zone ? `Zone ${v.zone}` : '' }
+      : { v: <span className="flex items-center gap-1.5"><span>{v.nom}</span><RoleBadge role={v.role} /></span>, sub: v.email },
     fmt(v.objectif_mensuel),
     fmt(v.objectif_annuel),
     { v: fmt(v.ca_total), bold: true },
@@ -310,7 +311,14 @@ export default function Equipe() {
           {!isManager && (
             <div>
               <label className="label">Rôle</label>
-              <select className="input" value={cForm.role} onChange={setC('role')}>
+              <select
+                className="input"
+                value={cForm.role}
+                onChange={(e) => {
+                  const newRole = e.target.value
+                  setCForm(p => ({ ...p, role: newRole, manager_id: newRole === 'manager' ? '' : p.manager_id }))
+                }}
+              >
                 <option value="vendeur">Commercial (vendeur)</option>
                 <option value="manager">Manager</option>
               </select>
