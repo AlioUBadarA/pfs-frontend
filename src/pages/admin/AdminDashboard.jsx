@@ -300,8 +300,12 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody>
                   {rizeries.map(r => {
-                    const emploisDelta = Number(r.emplois_actuels || 0) - Number(r.emplois_baseline || 0)
-                    const caDelta = Number(r.ca_total || 0) - Number(r.ca_baseline || 0)
+                    const emploisApp    = Number(r.emplois_actuels || 0)
+                    const emploisDelta  = emploisApp - Number(r.emplois_baseline || 0)
+                    const caCur         = Number(r.ca_annee_courante || 0)
+                    const caPrev        = Number(r.ca_annee_precedente || 0)
+                    const annee         = new Date().getFullYear()
+                    const caYoYPct      = caPrev > 0 ? Math.round((caCur - caPrev) / caPrev * 100) : null
                     return (
                     <tr key={r.id} className="hover:bg-gray-50">
                       <td className="table-cell font-semibold text-gray-900">{r.nom}</td>
@@ -311,10 +315,20 @@ export default function AdminDashboard() {
                       <td className="table-cell text-center font-medium">{r.nb_comptes}</td>
                       <td className="table-cell text-right font-semibold text-[#1b75bc]">{fmt(r.ca_total)}</td>
                       <td className="table-cell text-center whitespace-nowrap">
-                        {r.emplois_actuels} <span className={emploisDelta >= 0 ? 'text-green-600' : 'text-red-600'}>({emploisDelta >= 0 ? '+' : ''}{emploisDelta})</span>
+                        {emploisApp > 0
+                          ? <>{emploisApp} <span className={emploisDelta >= 0 ? 'text-green-600' : 'text-red-600'}>({emploisDelta >= 0 ? '+' : ''}{emploisDelta})</span></>
+                          : <span className="text-gray-300">—</span>
+                        }
                       </td>
-                      <td className="table-cell text-right whitespace-nowrap font-medium" style={{ color: caDelta >= 0 ? '#1B5E20' : '#CC0000' }}>
-                        {caDelta >= 0 ? '+' : ''}{fmt(caDelta)}
+                      <td className="table-cell text-right whitespace-nowrap font-medium">
+                        {caCur === 0 && caPrev === 0
+                          ? <span className="text-gray-300 text-xs">—</span>
+                          : caPrev === 0
+                            ? <span className="text-green-700 text-xs">Nouveau {annee}</span>
+                            : <span style={{ color: caYoYPct >= 0 ? '#1B5E20' : '#CC0000' }}>
+                                {caYoYPct >= 0 ? '+' : ''}{caYoYPct}% vs {annee - 1}
+                              </span>
+                        }
                       </td>
                       <td className="table-cell">
                         <KebabMenu
